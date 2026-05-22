@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Loop Player & Arcade Edition (PWA)</title>
+<title>AL&G - Loop Player & Arcade Edition</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="LoopArcade">
+<meta name="apple-mobile-web-app-title" content="AL&G">
 <link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
@@ -23,10 +23,9 @@ body {
     box-sizing: border-box; overflow: hidden; touch-action: none;
 }
 
-/* --- ✨ 背景パーティクル --- */
 #particleCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 
-/* --- ☰ ハンバーガーメニュー --- */
+/* ☰ ハンバーガーメニュー */
 .menu-trigger {
     position: fixed; top: 20px; left: 20px; width: 44px; height: 44px;
     background: #15151e; border: 1px solid #222230; border-radius: 12px;
@@ -35,7 +34,7 @@ body {
 }
 .menu-trigger span { display: block; width: 22px; height: 2px; background: #e5e5ea; border-radius: 2px; }
 
-/* --- 📂 サイドメニュー --- */
+/* 📂 サイドメニュー */
 .side-drawer {
     position: fixed; top: 0; left: 0; width: 300px; height: 100%;
     background: #0e0e12; border-right: 1px solid #222230; box-shadow: 5px 0 30px rgba(0,0,0,0.8); z-index: 2000;
@@ -48,9 +47,11 @@ body {
 .close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; }
 
 .game-launch-btn { width: 100%; padding: 14px; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: all 0.2s; }
-.game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); box-shadow: 0 4px 15px rgba(191, 90, 242, 0.3); }
-.game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
-.game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
+.game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
+.game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); }
+.game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); }
+.game-launch-btn.puddle { background: linear-gradient(135deg, #00f2fe, #4facfe); text-shadow: 0 0 8px rgba(0,242,254,0.6); }
+
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
@@ -72,29 +73,34 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .status-monitor { background: #09090d; border: 1px solid #2c2c3e; border-radius: 12px; padding: 12px; }
 #status { margin: 0; color: #0a84ff; font-family: monospace; font-size: 12px; font-weight: bold; }
 
-/* 🌟 ローディング */
 #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050508; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 #loadingOverlay.active { opacity: 1; pointer-events: auto; }
 .spinner { width: 40px; height: 40px; border: 4px solid transparent; border-top: 4px solid #0a84ff; border-right: 4px solid #bf5af2; border-radius: 50%; animation: spin 0.8s infinite linear; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* 🎮 オーバーレイUI群 */
+/* 🎮 共通ゲームスクリーン用UI */
 .game-overlay-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #111116; z-index: 3000; display: none;
+    background: #09090d; z-index: 3000; display: none;
     flex-direction: column; justify-content: center; align-items: center;
     box-sizing: border-box; touch-action: none;
 }
 .game-overlay-screen.active { display: flex; }
 .game-ui-wrap { text-align: center; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; position: relative; }
-.game-overlay-screen h1 { font-size: 20px; margin: 8px 0; font-family: 'Arial Black', sans-serif; }
-.canvas-container { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-.exit-game-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,59,48,0.9); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-weight: bold; font-size: 12px; z-index: 3100; cursor: pointer; }
-.bottom-action-btn { margin-top: 12px; width: 320px; padding: 14px; font-size: 16px; color: #fff; border: 2px solid #fff; border-radius: 14px; font-weight: bold; cursor: pointer; }
+.game-overlay-screen h1 { font-size: 18px; margin: 6px 0; font-family: 'Arial Black', sans-serif; letter-spacing: 1px; }
+.canvas-container { position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7); }
+.exit-game-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,59,48,0.9); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-weight: bold; font-size: 11px; z-index: 3100; cursor: pointer; }
+.bottom-action-btn { margin-top: 10px; width: 320px; padding: 12px; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-#holeGameCanvas { background: #242836; width: 340px; height: 490px; display: block; }
-#lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 500px; display: block; }
-#breakerCanvas { background: #09090d; width: 340px; height: 400px; display: block; }
+#holeGameCanvas { background: #242836; width: 340px; height: 460px; display: block; }
+#lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 480px; display: block; }
+#breakerCanvas { background: #09090d; width: 340px; height: 380px; display: block; }
+
+/* 🛸 パドルジャンパー専用の操縦コントローラーUI */
+#puddleCanvas { background: #020205; width: 340px; height: 360px; display: block; }
+.jumper-controls { display: flex; width: 340px; justify-content: space-between; margin-top: 10px; gap: 8px; }
+.ctrl-pad { background: #15151e; border: 1px solid #2d2d3d; border-radius: 12px; padding: 12px; color: #fff; font-weight: bold; font-size: 12px; flex: 1; touch-action: none; user-select: none; }
+.ctrl-pad:active { background: #222230; }
 </style>
 </head>
 <body>
@@ -106,14 +112,15 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
 <div class="side-drawer" id="sideDrawer">
-    <div class="drawer-header"><h2 class="drawer-title">ARCADE</h2><button class="close-btn" id="closeDrawer">&times;</button></div>
-    <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO (本家再現)</button>
-    <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR (調整版)</button>
+    <div class="drawer-header"><h2 class="drawer-title">AL&G ARCADE</h2><button class="close-btn" id="closeDrawer">&times;</button></div>
+    <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO</button>
+    <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR</button>
     <button class="game-launch-btn breaker" id="launchBreakerViewBtn">BLOCK BREAKER</button>
+    <button class="game-launch-btn puddle" id="launchPuddleBtn">🛸 PADDLE JUMPER 3D</button>
 </div>
 
 <div class="main-container" id="mainContainer">
-    <h1>LOOP PLAYER</h1>
+    <h1>AL&G LOOPER</h1>
     <div><input type="file" id="picker" accept=".mp3, .wav, .m4a, .aac, audio/*"></div>
     <div><button id="playBtn">PLAY</button></div>
     <div class="custom-player">
@@ -132,22 +139,18 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 <div class="game-overlay-screen" id="holeGameScreen">
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
-        <h1 style="color: #bf5af2; text-shadow: 0 0 10px rgba(191,90,242,0.4);">HOLE.IO 3D-2D</h1>
-        <div class="canvas-container" style="border: 4px solid #bf5af2;">
-            <canvas id="holeGameCanvas" width="340" height="490"></canvas>
-        </div>
-        <button id="startHoleGameBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #bf5af2 0%, #5e5ce6 100%);">TAP TO CONSUME</button>
+        <h1 style="color: #bf5af2;">HOLE.IO 3D-2D</h1>
+        <div class="canvas-container" style="border: 3px solid #bf5af2;"><canvas id="holeGameCanvas" width="340" height="460"></canvas></div>
+        <button id="startHoleGameBtn" class="bottom-action-btn" style="background: #bf5af2;">START CONSUME</button>
     </div>
 </div>
 
 <div class="game-overlay-screen" id="lastWarScreen">
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
-        <h1 style="color: #fff200; text-shadow: 0 3px 0 #bc0000;">LAST WAR: OPERATION</h1>
-        <div class="canvas-container" style="border: 4px solid #fff200;">
-            <canvas id="lastWarCanvas" width="320" height="500"></canvas>
-        </div>
-        <button id="startLastWarBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #ff9f0a 0%, #ff3b30 100%); font-style: italic;">START OPERATION</button>
+        <h1 style="color: #ff9f0a;">LAST WAR: OPERATION</h1>
+        <div class="canvas-container" style="border: 3px solid #ff9f0a;"><canvas id="lastWarCanvas" width="320" height="480"></canvas></div>
+        <button id="startLastWarBtn" class="bottom-action-btn" style="background: #ff9f0a;">START OPERATION</button>
     </div>
 </div>
 
@@ -155,12 +158,26 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
         <h1 style="color: #0a84ff;">BLOCK BREAKER</h1>
-        <div class="canvas-container" style="border: 4px solid #0a84ff;">
-            <canvas id="breakerCanvas" width="340" height="400"></canvas>
-        </div>
-        <button id="startBreakerBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #0a84ff 0%, #0055d4 100%);">START BREAKING</button>
+        <div class="canvas-container" style="border: 3px solid #0a84ff;"><canvas id="breakerCanvas" width="340" height="380"></canvas></div>
+        <button id="startBreakerBtn" class="bottom-action-btn" style="background: #0a84ff;">START BREAKING</button>
     </div>
 </div>
+
+<div class="game-overlay-screen" id="puddleScreen">
+    <div class="game-ui-wrap">
+        <button class="exit-game-btn generic-exit">EXIT</button>
+        <h1 style="color: #00f2fe; text-shadow: 0 0 10px #4facfe;">PADDLE JUMPER: STEER 3D</h1>
+        <div class="canvas-container" style="border: 3px solid #00f2fe;">
+            <canvas id="puddleCanvas" width="340" height="360"></canvas>
+        </div>
+        <div class="jumper-controls">
+            <button class="ctrl-pad" id="btnThrust">THRUST (加速)</button>
+            <button class="ctrl-pad" id="btnFire" style="background: linear-gradient(135deg, #ff3b30, #ff9f0a);">DRONE (攻撃)</button>
+        </div>
+        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※画面ドラッグ・スワイプで上下左右に旋回操縦</p>
+    </div>
+</div>
+
 
 <script>
 /* --- 共通画面遷移ロジック --- */
@@ -172,6 +189,7 @@ const closeDrawer = document.getElementById("closeDrawer");
 const holeScreen = document.getElementById("holeGameScreen");
 const lastWarScreen = document.getElementById("lastWarScreen");
 const breakerScreen = document.getElementById("breakerScreen");
+const puddleScreen = document.getElementById("puddleScreen");
 
 menuTrigger.addEventListener("click", () => { sideDrawer.classList.add("open"); drawerOverlay.classList.add("open"); });
 const closeMenu = () => { sideDrawer.classList.remove("open"); drawerOverlay.classList.remove("open"); };
@@ -183,12 +201,15 @@ document.querySelectorAll(".generic-exit").forEach(btn => {
         holeScreen.classList.remove("active"); activeHole = false;
         lastWarScreen.classList.remove("active"); activeLW = false;
         breakerScreen.classList.remove("active"); activeBB = false;
+        puddleScreen.classList.remove("active"); activePJ = false;
     });
 });
 
 document.getElementById("launchHoleViewBtn").addEventListener("click", () => { closeMenu(); holeScreen.classList.add("active"); initHoleGame(); });
 document.getElementById("launchLastWarViewBtn").addEventListener("click", () => { closeMenu(); lastWarScreen.classList.add("active"); initLastWar(); });
 document.getElementById("launchBreakerViewBtn").addEventListener("click", () => { closeMenu(); breakerScreen.classList.add("active"); initBreaker(); });
+document.getElementById("launchPuddleBtn").addEventListener("click", () => { closeMenu(); puddleScreen.classList.add("active"); initPuddleGame(); });
+
 
 /* ====================================================================
    🕳️ ロジック 1: HOLE.IO
@@ -307,6 +328,7 @@ function drawHoleGame() {
 }
 startHoleBtn.addEventListener("click", () => { initHoleGame(); activeHole = true; });
 
+
 /* ====================================================================
    🔥 ロジック 2: LAST WAR
    ==================================================================== */
@@ -390,6 +412,7 @@ function drawLastWar() {
 }
 startLwBtn.addEventListener("click", () => { initLastWar(); activeLW = true; });
 
+
 /* ====================================================================
    🧱 ロジック 3: BLOCK BREAKER
    ==================================================================== */
@@ -453,6 +476,212 @@ function drawBreaker() {
 }
 startBbBtn.addEventListener("click", () => { initBreaker(); activeBB = true; });
 
+
+/* ====================================================================
+   🛸 ロジック 4: PADDLE JUMPER 3D (スターゲイト操縦シミュレーション)
+   ==================================================================== */
+const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
+let activePJ = false, scorePJ = 0, energyPJ = 100, pjFrame = 0, gameOverPJ = false;
+// 3Dシミュレーション用のカメラ・プレイヤー状態
+let camPitch = 0, camYaw = 0, shipSpeed = 4.0;
+let star3D = [], objects3D = [], drones3D = [];
+let pjTouchStart = null;
+
+function initPuddleGame() {
+    scorePJ = 0; energyPJ = 100; pjFrame = 0; gameOverPJ = false; camPitch = 0; camYaw = 0; shipSpeed = 5.0;
+    star3D = []; objects3D = []; drones3D = []; activePJ = true;
+    
+    // 宇宙の星々を3D空間に初期化
+    for(let i=0; i<80; i++) {
+        star3D.push({ x: (Math.random()-0.5)*800, y: (Math.random()-0.5)*800, z: Math.random()*600 + 50 });
+    }
+    // 初期ターゲット（レイスの矢、スターゲイト）を配置
+    spawn3DObject('gate', 0, 0, 500);
+    for(let i=0; i<3; i++) spawn3DObject('wraith', (Math.random()-0.5)*300, (Math.random()-0.5)*300, Math.random()*400 + 200);
+}
+
+function spawn3DObject(type, x, y, z) {
+    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 65 : 18, hit: false });
+}
+
+// スマホのスワイプによる旋回（ピッチ & ヨー）コントロール
+pCanvas.addEventListener("touchstart", (e) => {
+    if(!activePJ || gameOverPJ) return;
+    let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY };
+}, {passive:true});
+pCanvas.addEventListener("touchmove", (e) => {
+    if(!activePJ || gameOverPJ || !pjTouchStart) return;
+    let t = e.touches[0];
+    let dx = t.clientX - pjTouchStart.x;
+    let dy = t.clientY - pjTouchStart.y;
+    // 操縦かんの動き（過剰に曲がりすぎないよう補正）
+    camYaw = dx * 0.0004;
+    camPitch = -dy * 0.0004;
+}, {passive:true});
+pCanvas.addEventListener("touchend", () => { camYaw = 0; camPitch = 0; pjTouchStart = null; });
+
+// 加速ボタンとドローン発射ボタンのイベント
+document.getElementById("btnThrust").addEventListener("touchstart", (e) => { e.preventDefault(); if(activePJ) shipSpeed = 12.0; });
+document.getElementById("btnThrust").addEventListener("touchend", () => { shipSpeed = 5.0; });
+document.getElementById("btnFire").addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if(!activePJ || gameOverPJ) return;
+    // パドルジャンパーから誘導ドローン（ミサイル）を正面に2発発射！
+    drones3D.push({ x: -15, y: 5, z: 10, vx: 0, vy: 0, vz: 18 });
+    drones3D.push({ x: 15, y: 5, z: 10, vx: 0, vy: 0, vz: 18 });
+});
+
+function updatePuddlePhysics() {
+    if(!activePJ || gameOverPJ) return;
+    pjFrame++;
+
+    // 1. 星の3D移動と旋回反映
+    star3D.forEach(s => {
+        // 船の旋回（カメラ回転の逆変換）
+        let x1 = s.x - camYaw * s.z; s.x = x1;
+        let y1 = s.y - camPitch * s.z; s.y = y1;
+        // 前進
+        s.z -= shipSpeed;
+        if(s.z <= 0) { s.x = (Math.random()-0.5)*800; s.y = (Math.random()-0.5)*800; s.z = 600; }
+    });
+
+    // 2. ドローン（誘導ミサイル）の更新
+    for(let i=drones3D.length-1; i>=0; i--) {
+        let d = drones3D[i];
+        d.z += d.vz; d.x += d.vx; d.y += d.vy;
+        if(d.z > 700) { drones3D.splice(i, 1); continue; }
+
+        // 最寄りの敵への超簡易誘導
+        if(objects3D.length > 0) {
+            let target = objects3D[0];
+            d.vx += (target.x - d.x) * 0.03;
+            d.vy += (target.y - d.y) * 0.03;
+        }
+    }
+
+    // 3. 3D敵オブジェクト、スターゲイトの処理
+    for(let i=objects3D.length-1; i>=0; i--) {
+        let o = objects3D[i];
+        o.x -= camYaw * o.z; o.y -= camPitch * o.z; o.z -= shipSpeed;
+
+        // ドローンとの当たり判定
+        for(let j=drones3D.length-1; j>=0; j--) {
+            let d = drones3D[j];
+            if(Math.hypot(o.x - d.x, o.y - d.y, o.z - d.z) < o.r + 5) {
+                if(o.type === 'wraith') {
+                    o.hit = true; scorePJ += 100;
+                    drones3D.splice(j, 1);
+                    objects3D.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
+        // 自機との衝突、またはゲイト通過判定
+        if(o.z <= 15) {
+            if(o.z < -20) { objects3D.splice(i,1); continue; }
+            let distToShip = Math.hypot(o.x, o.y);
+            if(o.type === 'gate') {
+                if(distToShip < o.r) { // ゲイト通過成功！
+                    scorePJ += 500;
+                    energyPJ = Math.min(100, energyPJ + 25);
+                } else { // ゲイトのフチに激突
+                    energyPJ -= 40;
+                }
+            } else if(o.type === 'wraith') {
+                energyPJ -= 20; // 敵船との接触ダメージ
+            }
+            objects3D.splice(i, 1);
+        }
+    }
+
+    // オブジェクトの定期補充
+    if(objects3D.length < 4) {
+        if(Math.random() > 0.4) spawn3DObject('wraith', (Math.random()-0.5)*250, (Math.random()-0.5)*250, 600);
+        else spawn3DObject('gate', (Math.random()-0.5)*100, (Math.random()-0.5)*100, 650);
+    }
+
+    if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
+}
+
+function drawPuddleGame() {
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
+
+    // 1. 星の描画 (3D透過投影)
+    pCtx.fillStyle = "#ffffff";
+    star3D.forEach(s => {
+        if(s.z <= 0) return;
+        let sx = (s.x / s.z) * 200 + cx;
+        let sy = (s.y / s.z) * 200 + cy;
+        let size = Math.max(0.5, (600 - s.z) / 150);
+        if(sx >= 0 && sx <= pCanvas.width && sy >=0 && sy <= pCanvas.height) {
+            pCtx.fillRect(sx, sy, size, size);
+        }
+    });
+
+    // 2. ドローンの描画
+    drones3D.forEach(d => {
+        if(d.z <= 0) return;
+        let dx = (d.x / d.z) * 200 + cx;
+        let dy = (d.y / d.z) * 200 + cy;
+        let r = Math.max(2, (700 - d.z) / 40);
+        pCtx.fillStyle = "#ffcc00"; pCtx.shadowBlur = 10; pCtx.shadowColor = "#ff9f0a";
+        pCtx.beginPath(); pCtx.arc(dx, dy, r, 0, Math.PI*2); pCtx.fill();
+        pCtx.shadowBlur = 0;
+    });
+
+    // 3. 3Dオブジェクト（敵・ゲイト）のワイヤーフレーム風描画
+    objects3D.sort((a,b) => b.z - a.z).forEach(o => {
+        if(o.z <= 10) return;
+        let ox = (o.x / o.z) * 200 + cx;
+        let oy = (o.y / o.z) * 200 + cy;
+        let size = (o.r / o.z) * 200;
+
+        if(o.type === 'gate') {
+            // スターゲイト (円形型超空間跳躍装置)
+            pCtx.strokeStyle = "#0a84ff"; pCtx.lineWidth = Math.max(2, 400/o.z);
+            pCtx.beginPath(); pCtx.arc(ox, oy, size, 0, Math.PI*2); pCtx.stroke();
+            // イベントホライズン（内側の水面エフェクト）
+            pCtx.fillStyle = "rgba(0, 242, 254, 0.2)"; pCtx.fill();
+            // シェブロン（ロック用パーツの点灯イメージ）
+            pCtx.fillStyle = "#ff9f0a";
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) {
+                pCtx.fillRect(ox+Math.cos(a)*size - 2, oy+Math.sin(a)*size - 2, 4, 4);
+            }
+        } else {
+            // レイス・ダート（敵機戦闘機）
+            pCtx.strokeStyle = "#30d158"; pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            pCtx.moveTo(ox, oy - size); pCtx.lineTo(ox - size, oy + size/2);
+            pCtx.lineTo(ox + size, oy + size/2); pCtx.closePath(); pCtx.stroke();
+            pCtx.fillStyle = "rgba(48,209,88,0.2)"; pCtx.fill();
+        }
+    });
+
+    // 4. パドルジャンパーコクピットのHUD（照準器など）
+    pCtx.strokeStyle = "rgba(0, 242, 254, 0.4)"; pCtx.lineWidth = 1;
+    pCtx.beginPath(); pCtx.arc(cx, cy, 30, 0, Math.PI*2); pCtx.stroke();
+    pCtx.beginPath(); pCtx.moveTo(cx - 45, cy); pCtx.lineTo(cx + 45, cy); pCtx.moveTo(cx, cy - 45); pCtx.lineTo(cx, cy + 45); pCtx.stroke();
+
+    // ジャンパーの風防（コクピットフレーム）の演出
+    pCtx.strokeStyle = "#15151e"; pCtx.lineWidth = 6;
+    pCtx.strokeRect(0, 0, pCanvas.width, pCanvas.height);
+
+    // HUDステータス表示
+    pCtx.fillStyle = "#00f2fe"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
+    pCtx.fillText("SHIELD: " + energyPJ + "%", 15, 25);
+    pCtx.fillStyle = "#fff"; pCtx.textAlign = "right";
+    pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
+
+    if(gameOverPJ) {
+        pCtx.fillStyle = "rgba(5,5,10,0.95)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+        pCtx.font = "900 22px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
+        pCtx.fillText("ジャンパー大破 / GAME OVER", pCanvas.width/2, pCanvas.height/2);
+    }
+}
+
+
 /* ====================================================================
    🔄 統合高速ループ管理システム
    ==================================================================== */
@@ -460,6 +689,7 @@ function masterGameLoop() {
     if (activeHole) { updateHolePhysics(); drawHoleGame(); }
     if (activeLW) { updateLastWar(); drawLastWar(); }
     if (activeBB) { updateBreaker(); drawBreaker(); }
+    if (activePJ) { updatePuddlePhysics(); drawPuddleGame(); }
     requestAnimationFrame(masterGameLoop);
 }
 masterGameLoop();
@@ -482,15 +712,9 @@ playBtn.addEventListener("click", () => { if(!player.src) return; if(player.paus
 function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), sec=Math.floor(s%60); return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0'); }
 player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
 
-
-/* ====================================================================
-   🚀 ✨ PWA サービスワーカー自動登録スクリプト
-   ==================================================================== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('ServiceWorker 登録成功:', reg.scope))
-      .catch(err => console.log('ServiceWorker 登録失敗:', err));
+    navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
   });
 }
 </script>
