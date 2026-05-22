@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Loop Player & Arcade Edition (PWA)</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LoopArcade">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+body {
+    background: #050508;
+    color: #e5e5ea;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    text-align: center;
+    margin: 0; padding: 0;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; min-height: 100dvh;
+    box-sizing: border-box; overflow: hidden; touch-action: none;
+}
+
+/* --- ✨ 背景パーティクル --- */
+#particleCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+/* --- ☰ ハンバーガーメニュー --- */
+.menu-trigger {
+    position: fixed; top: 20px; left: 20px; width: 44px; height: 44px;
+    background: #15151e; border: 1px solid #222230; border-radius: 12px;
+    cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+    z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+.menu-trigger span { display: block; width: 22px; height: 2px; background: #e5e5ea; border-radius: 2px; }
+
+/* --- 📂 サイドメニュー --- */
+.side-drawer {
+    position: fixed; top: 0; left: 0; width: 300px; height: 100%;
+    background: #0e0e12; border-right: 1px solid #222230; box-shadow: 5px 0 30px rgba(0,0,0,0.8); z-index: 2000;
+    display: flex; flex-direction: column; padding: 30px 20px; box-sizing: border-box;
+    transform: translate3d(-100%, 0, 0); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.side-drawer.open { transform: translate3d(0, 0, 0); }
+.drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #2c2c3e; padding-bottom: 15px; }
+.drawer-title { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: #bf5af2; margin: 0; }
+.close-btn { background: none; border: none; color: #8e8e93; font-size: 24px; cursor: pointer; }
+
+.game-launch-btn { width: 100%; padding: 14px; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: all 0.2s; }
+.game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); box-shadow: 0 4px 15px rgba(191, 90, 242, 0.3); }
+.game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); }
+.game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3); }
+.drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+.drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+/* ⚡ メインプレイヤーUI */
+.main-container {
+    background: linear-gradient(145deg, #0e0e12, #15151e); border: 1px solid #222230; border-radius: 24px;
+    padding: 35px 25px; width: 90%; max-width: 420px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; display: flex; flex-direction: column; gap: 20px;
+}
+.main-container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, #0a84ff, #bf5af2); border-radius: 24px 24px 0 0; }
+h1 { font-size: 26px; font-weight: 900; letter-spacing: 4px; margin: 0; background: linear-gradient(135deg, #0a84ff, #bf5af2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1c1c24; color: #8e8e93; border: 1px solid #2c2c3e; border-radius: 12px; box-sizing: border-box; }
+#playBtn { width: 100%; padding: 16px; font-size: 16px; background: linear-gradient(135deg, #0a84ff, #0055d4); color: white; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; }
+.custom-player { background: #09090d; border: 1px solid #2c2c3e; border-radius: 16px; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+.time-display { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; color: #8e8e93; }
+.seekbar-touch-zone { width: 100%; height: 20px; display: flex; align-items: center; position: relative; }
+.seekbar-container { width: 100%; height: 6px; background: #1c1c24; border-radius: 3px; position: relative; }
+.seekbar-progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: linear-gradient(90deg, #0a84ff, #bf5af2); border-radius: 3px; }
+.seekbar-handle { position: absolute; top: 50%; left: 0%; width: 14px; height: 14px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 8px #0a84ff; }
+.status-monitor { background: #09090d; border: 1px solid #2c2c3e; border-radius: 12px; padding: 12px; }
+#status { margin: 0; color: #0a84ff; font-family: monospace; font-size: 12px; font-weight: bold; }
+
+/* 🌟 ローディング */
+#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050508; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+#loadingOverlay.active { opacity: 1; pointer-events: auto; }
+.spinner { width: 40px; height: 40px; border: 4px solid transparent; border-top: 4px solid #0a84ff; border-right: 4px solid #bf5af2; border-radius: 50%; animation: spin 0.8s infinite linear; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* 🎮 オーバーレイUI群 */
+.game-overlay-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #111116; z-index: 3000; display: none;
+    flex-direction: column; justify-content: center; align-items: center;
+    box-sizing: border-box; touch-action: none;
+}
+.game-overlay-screen.active { display: flex; }
+.game-ui-wrap { text-align: center; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; position: relative; }
+.game-overlay-screen h1 { font-size: 20px; margin: 8px 0; font-family: 'Arial Black', sans-serif; }
+.canvas-container { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+.exit-game-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,59,48,0.9); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-weight: bold; font-size: 12px; z-index: 3100; cursor: pointer; }
+.bottom-action-btn { margin-top: 12px; width: 320px; padding: 14px; font-size: 16px; color: #fff; border: 2px solid #fff; border-radius: 14px; font-weight: bold; cursor: pointer; }
+
+#holeGameCanvas { background: #242836; width: 340px; height: 490px; display: block; }
+#lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 500px; display: block; }
+#breakerCanvas { background: #09090d; width: 340px; height: 400px; display: block; }
+</style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+<div id="loadingOverlay" class="active"><div class="spinner"></div></div>
+
+<div class="menu-trigger" id="menuTrigger"><span></span><span></span><span></span></div>
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<div class="side-drawer" id="sideDrawer">
+    <div class="drawer-header"><h2 class="drawer-title">ARCADE</h2><button class="close-btn" id="closeDrawer">&times;</button></div>
+    <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO (本家再現)</button>
+    <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR (調整版)</button>
+    <button class="game-launch-btn breaker" id="launchBreakerViewBtn">BLOCK BREAKER</button>
+</div>
+
+<div class="main-container" id="mainContainer">
+    <h1>LOOP PLAYER</h1>
+    <div><input type="file" id="picker" accept=".mp3, .wav, .m4a, .aac, audio/*"></div>
+    <div><button id="playBtn">PLAY</button></div>
+    <div class="custom-player">
+        <div class="time-display"><span id="currentTime">00:00</span><span id="durationTime">00:00</span></div>
+        <div class="seekbar-touch-zone" id="seekbarTouchZone">
+            <div class="seekbar-container">
+                <div class="seekbar-progress" id="seekbarProgress"></div>
+                <div class="seekbar-handle" id="seekbarHandle"></div>
+            </div>
+        </div>
+    </div>
+    <audio id="player" playsinline preload="auto" loop></audio>
+    <div class="status-monitor"><p id="status">NO FILE SELECTED</p></div>
+</div>
+
+<div class="game-overlay-screen" id="holeGameScreen">
+    <div class="game-ui-wrap">
+        <button class="exit-game-btn generic-exit">EXIT</button>
+        <h1 style="color: #bf5af2; text-shadow: 0 0 10px rgba(191,90,242,0.4);">HOLE.IO 3D-2D</h1>
+        <div class="canvas-container" style="border: 4px solid #bf5af2;">
+            <canvas id="holeGameCanvas" width="340" height="490"></canvas>
+        </div>
+        <button id="startHoleGameBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #bf5af2 0%, #5e5ce6 100%);">TAP TO CONSUME</button>
+    </div>
+</div>
+
+<div class="game-overlay-screen" id="lastWarScreen">
+    <div class="game-ui-wrap">
+        <button class="exit-game-btn generic-exit">EXIT</button>
+        <h1 style="color: #fff200; text-shadow: 0 3px 0 #bc0000;">LAST WAR: OPERATION</h1>
+        <div class="canvas-container" style="border: 4px solid #fff200;">
+            <canvas id="lastWarCanvas" width="320" height="500"></canvas>
+        </div>
+        <button id="startLastWarBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #ff9f0a 0%, #ff3b30 100%); font-style: italic;">START OPERATION</button>
+    </div>
+</div>
+
+<div class="game-overlay-screen" id="breakerScreen">
+    <div class="game-ui-wrap">
+        <button class="exit-game-btn generic-exit">EXIT</button>
+        <h1 style="color: #0a84ff;">BLOCK BREAKER</h1>
+        <div class="canvas-container" style="border: 4px solid #0a84ff;">
+            <canvas id="breakerCanvas" width="340" height="400"></canvas>
+        </div>
+        <button id="startBreakerBtn" class="bottom-action-btn" style="background: linear-gradient(180deg, #0a84ff 0%, #0055d4 100%);">START BREAKING</button>
+    </div>
+</div>
+
+<script>
+/* --- 共通画面遷移ロジック --- */
+const menuTrigger = document.getElementById("menuTrigger");
+const sideDrawer = document.getElementById("sideDrawer");
+const drawerOverlay = document.getElementById("drawerOverlay");
+const closeDrawer = document.getElementById("closeDrawer");
+
+const holeScreen = document.getElementById("holeGameScreen");
+const lastWarScreen = document.getElementById("lastWarScreen");
+const breakerScreen = document.getElementById("breakerScreen");
+
+menuTrigger.addEventListener("click", () => { sideDrawer.classList.add("open"); drawerOverlay.classList.add("open"); });
+const closeMenu = () => { sideDrawer.classList.remove("open"); drawerOverlay.classList.remove("open"); };
+closeDrawer.addEventListener("click", closeMenu);
+drawerOverlay.addEventListener("click", closeMenu);
+
+document.querySelectorAll(".generic-exit").forEach(btn => {
+    btn.addEventListener("click", () => {
+        holeScreen.classList.remove("active"); activeHole = false;
+        lastWarScreen.classList.remove("active"); activeLW = false;
+        breakerScreen.classList.remove("active"); activeBB = false;
+    });
+});
+
+document.getElementById("launchHoleViewBtn").addEventListener("click", () => { closeMenu(); holeScreen.classList.add("active"); initHoleGame(); });
+document.getElementById("launchLastWarViewBtn").addEventListener("click", () => { closeMenu(); lastWarScreen.classList.add("active"); initLastWar(); });
+document.getElementById("launchBreakerViewBtn").addEventListener("click", () => { closeMenu(); breakerScreen.classList.add("active"); initBreaker(); });
+
+/* ====================================================================
+   🕳️ ロジック 1: HOLE.IO
+   ==================================================================== */
+const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
+let activeHole = false, scoreHole = 0, timeHole = 60, gameOverHole = false, holeFrame = 0;
+let holeObj = { x: 170, y: 320, r: 18, targetR: 18, speed: 3.5 };
+let gameObjects = [];
+const MAX_CITY_OBJECTS = 60;
+let touchStartPos = null, touchCurrentPos = null;
+
+function initHoleGame() {
+    scoreHole = 0; timeHole = 60; gameOverHole = false; holeFrame = 0;
+    holeObj.x = 170; holeObj.y = 320; holeObj.r = 18; holeObj.targetR = 18;
+    gameObjects = []; touchStartPos = null; touchCurrentPos = null;
+    startHoleBtn.textContent = "RESET CITY";
+    for(let i=0; i<MAX_CITY_OBJECTS; i++) spawnCityObject(true);
+}
+
+function spawnCityObject(isInit = false) {
+    const assetTypes = [
+        { name: 'human', w: 6, h: 12, d: 6, score: 10, color: '#ffcc00', minR: 0 },
+        { name: 'hydrant', w: 8, h: 14, d: 8, score: 20, color: '#ff3b30', minR: 0 },
+        { name: 'bench', w: 18, h: 10, d: 10, score: 35, color: '#ff9f0a', minR: 22 },
+        { name: 'car', w: 22, h: 16, d: 34, score: 70, color: '#0a84ff', minR: 30 },
+        { name: 'truck', w: 24, h: 22, d: 46, score: 120, color: '#30d158', minR: 45 },
+        { name: 'building_s', w: 36, h: 70, d: 36, score: 250, color: '#e5e5ea', minR: 55 },
+        { name: 'building_l', w: 50, h: 130, d: 50, score: 600, color: '#bf5af2', minR: 72 }
+    ];
+    let available = assetTypes.filter(t => holeObj.targetR >= t.minR);
+    if(available.length === 0) available = [assetTypes[0]];
+    const proto = available[Math.floor(Math.random() * available.length)];
+    let spawnY = isInit ? Math.random() * (hCanvas.height - 80) + 50 : -60;
+    gameObjects.push({ x: Math.random() * (hCanvas.width - 60) + 30, y: spawnY, w: proto.w, h: proto.h, d: proto.d, score: proto.score, color: proto.color, name: proto.name, sucked: false, scale: 1.0, zDepth: 0, rot: Math.random() * 0.4 });
+}
+
+function project3D(x, y, zOffset = 0) { return { x: x, y: y * 0.78 - zOffset }; }
+
+hCanvas.addEventListener("touchstart", (e) => {
+    if(!activeHole || gameOverHole) return;
+    let t = e.touches[0], r = hCanvas.getBoundingClientRect();
+    touchStartPos = { x: t.clientX - r.left, y: t.clientY - r.top };
+    touchCurrentPos = { x: t.clientX - r.left, y: t.clientY - r.top };
+}, {passive: true});
+hCanvas.addEventListener("touchmove", (e) => {
+    if(!activeHole || gameOverHole || !touchStartPos) return;
+    let t = e.touches[0], r = hCanvas.getBoundingClientRect();
+    touchCurrentPos = { x: t.clientX - r.left, y: t.clientY - r.top };
+}, {passive: true});
+hCanvas.addEventListener("touchend", () => { touchStartPos = null; touchCurrentPos = null; });
+
+function updateHolePhysics() {
+    if(!activeHole || gameOverHole) return;
+    holeFrame++;
+    if(holeFrame % 60 === 0 && timeHole > 0) { timeHole--; if(timeHole <= 0) { gameOverHole = true; activeHole = false; startHoleBtn.textContent = "RETRY CONSUME"; } }
+    if(holeObj.r < holeObj.targetR) holeObj.r += 0.35;
+    if(touchStartPos && touchCurrentPos) {
+        let dx = touchCurrentPos.x - touchStartPos.x, dy = touchCurrentPos.y - touchStartPos.y, dist = Math.hypot(dx, dy);
+        if(dist > 5) {
+            let speedFactor = Math.min(dist / 40, 1.0), angle = Math.atan2(dy, dx);
+            holeObj.x += Math.cos(angle) * holeObj.speed * speedFactor; holeObj.y += Math.sin(angle) * holeObj.speed * speedFactor;
+        }
+    }
+    if(holeObj.x < holeObj.r) holeObj.x = holeObj.r; if(holeObj.x > hCanvas.width - holeObj.r) holeObj.x = hCanvas.width - holeObj.r;
+    if(holeObj.y < 60) holeObj.y = 60; if(holeObj.y > hCanvas.height - holeObj.r) holeObj.y = hCanvas.height - holeObj.r;
+    while(gameObjects.length < MAX_CITY_OBJECTS) spawnCityObject(false);
+
+    for(let i = gameObjects.length - 1; i >= 0; i--) {
+        let obj = gameObjects[i];
+        if(!obj.sucked) {
+            obj.y += 0.5; if(obj.y > hCanvas.height + 50) { gameObjects.splice(i, 1); continue; }
+            let checkDist = Math.hypot(obj.x - holeObj.x, (obj.y - holeObj.y) * 1.2), objRadius = Math.max(obj.w, obj.d) * 0.5;
+            if(holeObj.r > objRadius * 1.2) { if(checkDist < holeObj.r) obj.sucked = true; }
+            else if(checkDist < holeObj.r + objRadius) {
+                let angle = Math.atan2(obj.y - holeObj.y, obj.x - holeObj.x);
+                holeObj.x = obj.x - Math.cos(angle) * (holeObj.r + objRadius); holeObj.y = obj.y - Math.sin(angle) * (holeObj.r + objRadius) * 0.8;
+            }
+        } else {
+            obj.x += (holeObj.x - obj.x) * 0.22; obj.y += (holeObj.y - obj.y) * 0.22;
+            obj.scale -= 0.06; obj.zDepth += 3.8;
+            if(obj.scale <= 0.1 || obj.zDepth > 40) { scoreHole += obj.score; holeObj.targetR += Math.sqrt(obj.score) * 0.22; if(holeObj.targetR > 100) holeObj.targetR = 100; gameObjects.splice(i, 1); }
+        }
+    }
+    gameObjects.sort((a, b) => a.y - b.y);
+}
+
+function draw3DObject(ctx, obj) {
+    let base = project3D(obj.x, obj.y); let sizeW = obj.w * obj.scale, sizeD = obj.d * obj.scale, sizeH = obj.h * obj.scale; base.y += obj.zDepth * 0.5;
+    ctx.save(); ctx.translate(base.x, base.y); ctx.rotate(obj.sucked ? obj.rot * 3 : obj.rot);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; ctx.beginPath(); ctx.ellipse(0, 0, sizeW*0.6, sizeD*0.4, 0, 0, Math.PI*2); ctx.fill();
+    let frontColor = obj.color, sideColor = adjustColorBrightness(obj.color, -30), topColor = adjustColorBrightness(obj.color, 20);
+    if(obj.name.startsWith('building')) {
+        ctx.fillStyle = frontColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); ctx.fillStyle = "rgba(255, 242, 0, 0.6)";
+        for(let wy = -sizeH + 8; wy < -5; wy += 12) { for(let wx = -sizeW/2 + 5; wx < sizeW/2 - 5; wx += 8) { if(Math.random() > 0.3) ctx.fillRect(wx, wy, 4, 6); } }
+    } else if(obj.name === 'car' || obj.name === 'truck') {
+        ctx.fillStyle = sideColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); ctx.fillStyle = topColor; ctx.fillRect(-sizeW/2, -sizeH - 4, sizeW, 4);
+    } else { ctx.fillStyle = frontColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); }
+    ctx.restore();
+}
+function adjustColorBrightness(hex, percent) { let R = parseInt(hex.substring(1,3),16), G = parseInt(hex.substring(3,5),16), B = parseInt(hex.substring(5,7),16); R = parseInt(R * (100 + percent) / 100); G = parseInt(G * (100 + percent) / 100); B = parseInt(B * (100 + percent) / 100); return "#"+((1<<24)+((R<255?R:255)<<16)+((G<255?G:255)<<8)+(B<255?B:255)).toString(16).slice(1); }
+
+function drawHoleGame() {
+    hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
+    hCtx.strokeStyle = "rgba(255,255,255,0.04)"; hCtx.lineWidth = 1;
+    for(let i=-200; i<hCanvas.width+200; i+=30) { let pStart = project3D(i, 0), pEnd = project3D(i, hCanvas.height); hCtx.beginPath(); hCtx.moveTo(pStart.x, pStart.y); hCtx.lineTo(pEnd.x, pEnd.y); hCtx.stroke(); }
+    let holeProj = project3D(holeObj.x, holeObj.y); hCtx.fillStyle = "#09090d"; hCtx.beginPath(); hCtx.ellipse(holeProj.x, holeProj.y, holeObj.r, holeObj.r * 0.72, 0, 0, Math.PI*2); hCtx.fill();
+    hCtx.strokeStyle = "#bf5af2"; hCtx.lineWidth = 4; hCtx.beginPath(); hCtx.ellipse(holeProj.x, holeProj.y, holeObj.r, holeObj.r * 0.72, 0, 0, Math.PI*2); hCtx.stroke();
+    gameObjects.forEach(obj => draw3DObject(hCtx, obj));
+    if(touchStartPos && touchCurrentPos) {
+        hCtx.fillStyle = "rgba(255,255,255,0.08)"; hCtx.beginPath(); hCtx.arc(touchStartPos.x, touchStartPos.y, 35, 0, Math.PI*2); hCtx.fill();
+        hCtx.fillStyle = "#bf5af2"; hCtx.beginPath(); hCtx.arc(touchCurrentPos.x, touchCurrentPos.y, 16, 0, Math.PI*2); hCtx.fill();
+    }
+    hCtx.fillStyle = "#ffcc00"; hCtx.font = "900 15px sans-serif"; hCtx.textAlign = "left"; hCtx.fillText("⏱️ " + timeHole + "s", 15, 30);
+    hCtx.fillStyle = "#fff"; hCtx.font = "900 italic 15px sans-serif"; hCtx.textAlign = "right"; hCtx.fillText("SCORE: " + scoreHole, hCanvas.width - 15, 30);
+    if(gameOverHole) { hCtx.fillStyle = "rgba(10,10,15,0.92)"; hCtx.fillRect(0,0,hCanvas.width,hCanvas.height); hCtx.font = "900 26px sans-serif"; hCtx.textAlign = "center"; hCtx.fillStyle = "#bf5af2"; hCtx.fillText("TIME UP!", hCanvas.width/2, hCanvas.height/2 - 20); hCtx.fillStyle = "#fff"; hCtx.fillText("FINAL SCORE: " + scoreHole, hCanvas.width/2, hCanvas.height/2 + 20); }
+}
+startHoleBtn.addEventListener("click", () => { initHoleGame(); activeHole = true; });
+
+/* ====================================================================
+   🔥 ロジック 2: LAST WAR
+   ==================================================================== */
+const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
+let activeLW = false, scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = false, lwLevel = 1, playerX = 100;
+let bullets = [], sideGates = [], enemies = [], dynamicTexts = [];
+const playerY = 435, playableWidth = 220;
+
+function initLastWar() {
+    scoreLW = 0; soldierCount = 5; lwFrame = 0; lwLevel = 1; gameOverLW = false; playerX = 100;
+    bullets = []; enemies = []; dynamicTexts = []; sideGates = []; startLwBtn.textContent = "ABORT OPERATION";
+    for(let i = 0; i < 4; i++) spawnSideGate(-i * 140 - 100);
+}
+function spawnSideGate(yPos) {
+    let type = Math.random() > 0.4 ? 'add' : 'mult', val = type === 'add' ? (Math.floor(Math.random() * 6) + 4 + Math.floor(lwLevel * 0.5)) : 2;
+    sideGates.push({ x: playableWidth + 6, y: yPos, w: lwCanvas.width - playableWidth - 12, h: 40, type: type, val: val });
+}
+function spawnEnemyWave() {
+    let count = Math.floor(Math.random() * 3) + 4 + Math.min(Math.floor(lwLevel / 2), 5);
+    for(let i=0; i<count; i++) {
+        let baseHp = Math.floor(Math.random() * 2) + 1 + Math.floor(lwLevel * 0.5);
+        enemies.push({ x: Math.random() * (playableWidth - 32) + 16, y: -20 - (Math.random() * 60), r: 8.5 + Math.min(baseHp * 0.4, 4), hp: baseHp, maxHp: baseHp, speed: 1.1 + (lwLevel * 0.11) });
+    }
+}
+lwCanvas.addEventListener("touchmove", (e) => {
+    if(!activeLW || gameOverLW) return;
+    let rect = lwCanvas.getBoundingClientRect(); playerX = (e.touches[0].clientX - rect.left) * (lwCanvas.width / rect.width);
+    if(playerX < 15) playerX = 15; if(playerX > lwCanvas.width - 15) playerX = lwCanvas.width - 15;
+}, {passive: true});
+
+function updateLastWar() {
+    if(!activeLW || gameOverLW) return;
+    lwFrame++;
+    let nextLevel = Math.floor(scoreLW / 400) + 1;
+    if(nextLevel > lwLevel) { lwLevel = nextLevel; dynamicTexts.push({ x: lwCanvas.width / 2, y: 200, txt: "⚠️ LEVEL UP: " + lwLevel, color: "#fff200", timer: 45 }); }
+    let fireInterval = Math.max(2, 8 - Math.floor(soldierCount / 20));
+    if(lwFrame % fireInterval === 0) {
+        let spreads = Math.min(Math.floor(soldierCount / 3) + 1, 15), squadWidth = Math.min(spreads * 5.5, 70);
+        for(let i=0; i<spreads; i++) {
+            let offset = spreads > 1 ? (i / (spreads - 1) - 0.5) * squadWidth : 0;
+            bullets.push({ x: playerX + offset, y: playerY - 10, speedY: 9, r: 3.5, power: 1 + Math.floor(lwLevel * 0.2) });
+        }
+    }
+    bullets.forEach((b, idx) => { b.y -= b.speedY; if(b.y < -10) bullets.splice(idx, 1); });
+    sideGates.forEach((g, idx) => {
+        g.y += 1.4 + (lwLevel * 0.05);
+        if(g.y + g.h >= playerY - 8 && g.y <= playerY + 15) {
+            if(playerX + 20 > g.x && playerX - 20 < g.x + g.w) {
+                soldierCount = g.type === 'add' ? soldierCount + g.val : soldierCount * g.val;
+                if(soldierCount > 100) soldierCount = 100;
+                dynamicTexts.push({ x: g.x + g.w/2, y: playerY - 20, txt: (g.type==='add'?'+':'×') + g.val, color: "#00ffcc", timer: 25 });
+                sideGates.splice(idx, 1); spawnSideGate(-60);
+            }
+        }
+        if(g.y > lwCanvas.height) { sideGates.splice(idx, 1); spawnSideGate(-40); }
+    });
+    if(lwFrame % Math.max(20, 48 - lwLevel * 3) === 0) spawnEnemyWave();
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        let e = enemies[i]; e.y += e.speed; let isDead = false;
+        for (let j = bullets.length - 1; j >= 0; j--) {
+            let b = bullets[j];
+            if(Math.hypot(b.x - e.x, b.y - e.y) < (e.r + b.r)) { bullets.splice(j, 1); e.hp -= b.power; if(e.hp <= 0) { isDead = true; break; } }
+        }
+        if (isDead) { enemies.splice(i, 1); scoreLW += 10; continue; }
+        if(e.y >= lwCanvas.height - 35) { gameOverLW = true; activeLW = false; startLwBtn.textContent = "RETRY OPERATION"; }
+    }
+}
+function drawLastWar() {
+    lwCtx.clearRect(0, 0, lwCanvas.width, lwCanvas.height);
+    lwCtx.strokeStyle = "rgba(255,255,255,0.2)"; lwCtx.lineWidth = 4; lwCtx.beginPath(); lwCtx.moveTo(playableWidth, 0); lwCtx.lineTo(playableWidth, lwCanvas.height); lwCtx.stroke();
+    sideGates.forEach(g => { lwCtx.fillStyle = "rgba(0, 150, 255, 0.9)"; lwCtx.fillRect(g.x, g.y, g.w, g.h); lwCtx.font = "900 16px sans-serif"; lwCtx.fillStyle = "#fff"; lwCtx.textAlign = "center"; lwCtx.fillText((g.type === 'add' ? '+' : '×') + g.val, g.x + g.w/2, g.y + 26); });
+    lwCtx.fillStyle = "#fff200"; bullets.forEach(b => { lwCtx.beginPath(); lwCtx.arc(b.x, b.y, b.r, 0, Math.PI*2); lwCtx.fill(); });
+    enemies.forEach(e => { lwCtx.fillStyle = "#dc3545"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y, e.r, 0, Math.PI*2); lwCtx.fill(); });
+    let displayCount = Math.min(soldierCount, 40);
+    for(let i=0; i<displayCount; i++) { lwCtx.fillStyle = "#007bff"; lwCtx.beginPath(); lwCtx.arc(playerX + (i%5 - 2)*8, playerY + Math.floor(i/5)*8, 4, 0, Math.PI*2); lwCtx.fill(); }
+    lwCtx.fillStyle = "#00f0ff"; lwCtx.font = "900 13px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillText("ARMY: " + soldierCount, playerX, playerY - 15);
+    lwCtx.fillStyle = "#ff2d55"; lwCtx.textAlign = "left"; lwCtx.fillText("⭐ LV " + lwLevel, 12, 25);
+    lwCtx.fillStyle = "#fff"; lwCtx.textAlign = "right"; lwCtx.fillText("SCORE: " + scoreLW, lwCanvas.width - 12, 25);
+    dynamicTexts.forEach((t, i) => { lwCtx.fillStyle = t.color; lwCtx.font = "900 15px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillText(t.txt, t.x, t.y); t.y -= 0.8; t.timer--; if(t.timer <= 0) dynamicTexts.splice(i, 1); });
+    if(gameOverLW) { lwCtx.fillStyle = "rgba(10,12,10,0.95)"; lwCtx.fillRect(0,0,lwCanvas.width,lwCanvas.height); lwCtx.font = "900 22px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillStyle = "#ff1a00"; lwCtx.fillText("DEFENSE CRUSHED", lwCanvas.width/2, lwCanvas.height/2); }
+}
+startLwBtn.addEventListener("click", () => { initLastWar(); activeLW = true; });
+
+/* ====================================================================
+   🧱 ロジック 3: BLOCK BREAKER
+   ==================================================================== */
+const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
+let activeBB = false, bx, by, bdx, bdy, bpX, bricks, scoreBB, gameOverBB = false;
+const brR = 7, pToH = 12, pToW = 75, brW = 46, brH = 16, brP = 6, brTop = 40, brLeft = 16;
+
+function initBreaker() {
+    bx = bCanvas.width / 2; by = bCanvas.height - 45; bdx = 2.0; bdy = -3.5; bpX = (bCanvas.width - pToW) / 2; scoreBB = 0; bricks = []; gameOverBB = false;
+    startBbBtn.textContent = "RESET AREA";
+    for(let i=0; i<6; i++) { bricks[i] = []; for(let j=0; j<5; j++) bricks[i][j] = { x:0, y:0, v:1 }; }
+}
+bCanvas.addEventListener("touchmove", (e) => {
+    if(!activeBB || gameOverBB) return;
+    let rect = bCanvas.getBoundingClientRect(); bpX = (e.touches[0].clientX - rect.left) * (bCanvas.width / rect.width) - pToW / 2;
+    if(bpX < 0) bpX = 0; if(bpX > bCanvas.width - pToW) bpX = bCanvas.width - pToW;
+}, {passive: true});
+
+function updateBreaker() {
+    if(!activeBB || gameOverBB) return;
+    for(let i=0; i<6; i++) {
+        for(let j=0; j<5; j++) {
+            let b = bricks[i][j];
+            if(b.v === 1 && bx + brR > b.x && bx - brR < b.x + brW && by + brR > b.y && by - brR < b.y + brH) {
+                b.v = 0; scoreBB++; bdy = -bdy;
+                if(scoreBB === 30) { gameOverBB = true; activeBB = false; startBbBtn.textContent = "PERFECT! RETRY"; }
+                return;
+            }
+        }
+    }
+    if(bx + bdx > bCanvas.width - brR || bx + bdx < brR) bdx = -bdx;
+    if(by + bdy < brR) bdy = -bdy;
+
+    let paddleTopY = bCanvas.height - pToH - 10;
+    if (bdy > 0 && by + brR >= paddleTopY && by - brR <= paddleTopY + pToH) {
+        if (bx >= bpX && bx <= bpX + pToW) {
+            bdy = -Math.abs(bdy);
+            let hitPoint = (bx - (bpX + pToW / 2)) / (pToW / 2);
+            bdx = hitPoint * 4.0; 
+            by = paddleTopY - brR;
+        }
+    }
+    if(by > bCanvas.height) { gameOverBB = true; activeBB = false; startBbBtn.textContent = "RETRY MISSION"; }
+    bx += bdx; by += bdy;
+}
+
+function drawBreaker() {
+    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+    for(let i=0; i<6; i++) {
+        for(let j=0; j<5; j++) {
+            if(bricks[i][j] && bricks[i][j].v === 1) {
+                let xPos = i * (brW + brP) + brLeft, yPos = j * (brH + brP) + brTop; bricks[i][j].x = xPos; bricks[i][j].y = yPos;
+                bCtx.fillStyle = j===0?"#ff453a":j===1?"#ff9f0a":"#0a84ff"; bCtx.fillRect(xPos, yPos, brW, brH);
+            }
+        }
+    }
+    bCtx.fillStyle = "#bf5af2"; bCtx.beginPath(); bCtx.arc(bx, by, brR, 0, Math.PI*2); bCtx.fill();
+    bCtx.fillStyle = "#0a84ff"; bCtx.fillRect(bpX, bCanvas.height - pToH - 10, pToW, pToH);
+    bCtx.fillStyle = "#fff"; bCtx.font = "bold 14px monospace"; bCtx.textAlign = "left"; bCtx.fillText("SCORE: "+scoreBB, 16, 25);
+    if(gameOverBB) { bCtx.fillStyle = "rgba(10,10,15,0.9)"; bCtx.fillRect(0,0,bCanvas.width,bCanvas.height); bCtx.font = "900 24px sans-serif"; bCtx.textAlign = "center"; bCtx.fillStyle = scoreBB===30?"#30d158":"#ff3b30"; bCtx.fillText(scoreBB===30?"STAGE CLEAR!":"GAME OVER", bCanvas.width/2, bCanvas.height/2); }
+}
+startBbBtn.addEventListener("click", () => { initBreaker(); activeBB = true; });
+
+/* ====================================================================
+   🔄 統合高速ループ管理システム
+   ==================================================================== */
+function masterGameLoop() {
+    if (activeHole) { updateHolePhysics(); drawHoleGame(); }
+    if (activeLW) { updateLastWar(); drawLastWar(); }
+    if (activeBB) { updateBreaker(); drawBreaker(); }
+    requestAnimationFrame(masterGameLoop);
+}
+masterGameLoop();
+
+const picker = document.getElementById("picker"), player = document.getElementById("player"), statusEl = document.getElementById("status");
+const playBtn = document.getElementById("playBtn"), seekbarProgress = document.getElementById("seekbarProgress"), seekbarHandle = document.getElementById("seekbarHandle");
+const currentTimeEl = document.getElementById("currentTime"), durationTimeEl = document.getElementById("durationTime"), loadingOverlay = document.getElementById("loadingOverlay");
+let currentUrl = null;
+
+window.addEventListener("load", () => { setTimeout(() => { loadingOverlay.classList.remove("active"); }, 400); });
+
+picker.addEventListener("change", () => {
+    const file = picker.files[0]; if(!file) return;
+    if(currentUrl) URL.revokeObjectURL(currentUrl); currentUrl = URL.createObjectURL(file);
+    player.src = currentUrl; player.load(); statusEl.textContent = file.name.toUpperCase();
+    player.addEventListener("loadedmetadata", () => { durationTimeEl.textContent = formatTime(player.duration); }, {once:true});
+});
+
+playBtn.addEventListener("click", () => { if(!player.src) return; if(player.paused) { player.play(); playBtn.textContent = "PAUSE"; } else { player.pause(); playBtn.textContent = "PLAY"; } });
+function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), sec=Math.floor(s%60); return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0'); }
+player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
+
+
+/* ====================================================================
+   🚀 ✨ PWA サービスワーカー自動登録スクリプト
+   ==================================================================== */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('ServiceWorker 登録成功:', reg.scope))
+      .catch(err => console.log('ServiceWorker 登録失敗:', err));
+  });
+}
+</script>
+</body>
+</html>
