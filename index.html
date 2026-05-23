@@ -13,19 +13,16 @@
 
 <style>
 body {
-    background: #050508;
-    color: #e5e5ea;
+    background: #050508; color: #e5e5ea;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    text-align: center;
-    margin: 0; padding: 0;
+    text-align: center; margin: 0; padding: 0;
     display: flex; justify-content: center; align-items: center;
     min-height: 100vh; min-height: 100dvh;
     box-sizing: border-box; overflow: hidden; touch-action: none;
 }
-
 #particleCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 
-/* ☰ ハンバーガーメニュー */
+/* ☰ メニュー */
 .menu-trigger {
     position: fixed; top: 20px; left: 20px; width: 44px; height: 44px;
     background: #15151e; border: 1px solid #222230; border-radius: 12px;
@@ -50,12 +47,12 @@ body {
 .game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
 .game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); }
 .game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); }
-.game-launch-btn.puddle { background: linear-gradient(135deg, #00f2fe, #4facfe); text-shadow: 0 0 8px rgba(0,242,254,0.6); }
+.game-launch-btn.puddle { background: linear-gradient(135deg, #00f2fe, #4facfe); text-shadow: 0 0 8px rgba(0,242,254,0.6); display: block !important; }
 
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
-/* ⚡ メインプレイヤーUI */
+/* ⚡ プレイヤーUI */
 .main-container {
     background: linear-gradient(145deg, #0e0e12, #15151e); border: 1px solid #222230; border-radius: 24px;
     padding: 35px 25px; width: 90%; max-width: 420px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; display: flex; flex-direction: column; gap: 20px;
@@ -78,7 +75,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .spinner { width: 40px; height: 40px; border: 4px solid transparent; border-top: 4px solid #0a84ff; border-right: 4px solid #bf5af2; border-radius: 50%; animation: spin 0.8s infinite linear; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* 🎮 共通ゲームスクリーン用UI */
+/* 🎮 各種ゲーム画面 */
 .game-overlay-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #09090d; z-index: 3000; display: none;
@@ -96,11 +93,11 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 #lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 480px; display: block; }
 #breakerCanvas { background: #09090d; width: 340px; height: 380px; display: block; }
 
-/* 🛸 パドルジャンパー専用の操縦コントローラーUI */
-#puddleCanvas { background: #020205; width: 340px; height: 360px; display: block; }
-.jumper-controls { display: flex; width: 340px; justify-content: space-between; margin-top: 10px; gap: 8px; }
-.ctrl-pad { background: #15151e; border: 1px solid #2d2d3d; border-radius: 12px; padding: 12px; color: #fff; font-weight: bold; font-size: 12px; flex: 1; touch-action: none; user-select: none; }
-.ctrl-pad:active { background: #222230; }
+/* 🛸 パドルジャンパー専用 */
+#puddleCanvas { background: #020207; width: 340px; height: 370px; display: block; }
+.jumper-controls { display: flex; width: 340px; justify-content: center; margin-top: 10px; }
+.ctrl-pad { background: linear-gradient(135deg, #00f2fe, #4facfe); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #050508; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ctrl-pad:active { background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; }
 </style>
 </head>
 <body>
@@ -166,21 +163,20 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 <div class="game-overlay-screen" id="puddleScreen">
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
-        <h1 style="color: #00f2fe; text-shadow: 0 0 10px #4facfe;">PADDLE JUMPER: STEER 3D</h1>
+        <h1 style="color: #00f2fe; text-shadow: 0 0 10px #4facfe;">🛸 PADDLE JUMPER 3D</h1>
         <div class="canvas-container" style="border: 3px solid #00f2fe;">
-            <canvas id="puddleCanvas" width="340" height="360"></canvas>
+            <canvas id="puddleCanvas" width="340" height="370"></canvas>
         </div>
         <div class="jumper-controls">
-            <button class="ctrl-pad" id="btnThrust">THRUST (加速)</button>
-            <button class="ctrl-pad" id="btnFire" style="background: linear-gradient(135deg, #ff3b30, #ff9f0a);">DRONE (攻撃)</button>
+            <button class="ctrl-pad" id="btnThrust">🚀 HYPER THRUST (加速・変形)</button>
         </div>
-        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※画面ドラッグ・スワイプで上下左右に旋回操縦</p>
+        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※上スワイプで上昇、下で下降。ドローンは全自動で敵を追尾撃破！</p>
     </div>
 </div>
 
 
 <script>
-/* --- 共通画面遷移ロジック --- */
+/* --- 画面遷移管理 --- */
 const menuTrigger = document.getElementById("menuTrigger");
 const sideDrawer = document.getElementById("sideDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay");
@@ -212,478 +208,404 @@ document.getElementById("launchPuddleBtn").addEventListener("click", () => { clo
 
 
 /* ====================================================================
-   🕳️ ロジック 1: HOLE.IO
+   🕳️ GAME 1: HOLE.IO
    ==================================================================== */
 const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
 let activeHole = false, scoreHole = 0, timeHole = 60, gameOverHole = false, holeFrame = 0;
 let holeObj = { x: 170, y: 320, r: 18, targetR: 18, speed: 3.5 };
 let gameObjects = [];
-const MAX_CITY_OBJECTS = 60;
 let touchStartPos = null, touchCurrentPos = null;
 
 function initHoleGame() {
     scoreHole = 0; timeHole = 60; gameOverHole = false; holeFrame = 0;
     holeObj.x = 170; holeObj.y = 320; holeObj.r = 18; holeObj.targetR = 18;
-    gameObjects = []; touchStartPos = null; touchCurrentPos = null;
-    startHoleBtn.textContent = "RESET CITY";
-    for(let i=0; i<MAX_CITY_OBJECTS; i++) spawnCityObject(true);
+    gameObjects = []; activeHole = true; startHoleBtn.textContent = "RESET CITY";
+    for(let i=0; i<40; i++) spawnCityObject(true);
 }
-
 function spawnCityObject(isInit = false) {
-    const assetTypes = [
-        { name: 'human', w: 6, h: 12, d: 6, score: 10, color: '#ffcc00', minR: 0 },
-        { name: 'hydrant', w: 8, h: 14, d: 8, score: 20, color: '#ff3b30', minR: 0 },
-        { name: 'bench', w: 18, h: 10, d: 10, score: 35, color: '#ff9f0a', minR: 22 },
-        { name: 'car', w: 22, h: 16, d: 34, score: 70, color: '#0a84ff', minR: 30 },
-        { name: 'truck', w: 24, h: 22, d: 46, score: 120, color: '#30d158', minR: 45 },
-        { name: 'building_s', w: 36, h: 70, d: 36, score: 250, color: '#e5e5ea', minR: 55 },
-        { name: 'building_l', w: 50, h: 130, d: 50, score: 600, color: '#bf5af2', minR: 72 }
-    ];
-    let available = assetTypes.filter(t => holeObj.targetR >= t.minR);
-    if(available.length === 0) available = [assetTypes[0]];
-    const proto = available[Math.floor(Math.random() * available.length)];
-    let spawnY = isInit ? Math.random() * (hCanvas.height - 80) + 50 : -60;
-    gameObjects.push({ x: Math.random() * (hCanvas.width - 60) + 30, y: spawnY, w: proto.w, h: proto.h, d: proto.d, score: proto.score, color: proto.color, name: proto.name, sucked: false, scale: 1.0, zDepth: 0, rot: Math.random() * 0.4 });
+    const types = [{w:6,h:12,s:10,c:'#ffcc00'}, {w:18,h:10,s:35,c:'#ff9f0a'}, {w:24,h:22,s:120,c:'#30d158'}, {w:40,h:90,s:300,c:'#bf5af2'}];
+    let t = types[Math.floor(Math.random()*types.length)];
+    gameObjects.push({ x: Math.random()*300+20, y: isInit?Math.random()*380+50:-40, w: t.w, h: t.h, score: t.s, color: t.c, sucked: false, scale: 1.0, z: 0 });
 }
-
-function project3D(x, y, zOffset = 0) { return { x: x, y: y * 0.78 - zOffset }; }
-
 hCanvas.addEventListener("touchstart", (e) => {
-    if(!activeHole || gameOverHole) return;
     let t = e.touches[0], r = hCanvas.getBoundingClientRect();
-    touchStartPos = { x: t.clientX - r.left, y: t.clientY - r.top };
-    touchCurrentPos = { x: t.clientX - r.left, y: t.clientY - r.top };
-}, {passive: true});
+    touchStartPos = { x: t.clientX - r.left, y: t.clientY - r.top }; touchCurrentPos = {...touchStartPos};
+}, {passive:true});
 hCanvas.addEventListener("touchmove", (e) => {
-    if(!activeHole || gameOverHole || !touchStartPos) return;
-    let t = e.touches[0], r = hCanvas.getBoundingClientRect();
+    if(!touchStartPos) return; let t = e.touches[0], r = hCanvas.getBoundingClientRect();
     touchCurrentPos = { x: t.clientX - r.left, y: t.clientY - r.top };
-}, {passive: true});
-hCanvas.addEventListener("touchend", () => { touchStartPos = null; touchCurrentPos = null; });
+}, {passive:true});
+hCanvas.addEventListener("touchend", () => { touchStartPos = null; });
 
 function updateHolePhysics() {
-    if(!activeHole || gameOverHole) return;
-    holeFrame++;
-    if(holeFrame % 60 === 0 && timeHole > 0) { timeHole--; if(timeHole <= 0) { gameOverHole = true; activeHole = false; startHoleBtn.textContent = "RETRY CONSUME"; } }
-    if(holeObj.r < holeObj.targetR) holeObj.r += 0.35;
+    if(!activeHole || gameOverHole) return; holeFrame++;
+    if(holeFrame%60===0 && timeHole>0) { timeHole--; if(timeHole<=0) gameOverHole=true; }
+    if(holeObj.r < holeObj.targetR) holeObj.r += 0.2;
     if(touchStartPos && touchCurrentPos) {
-        let dx = touchCurrentPos.x - touchStartPos.x, dy = touchCurrentPos.y - touchStartPos.y, dist = Math.hypot(dx, dy);
-        if(dist > 5) {
-            let speedFactor = Math.min(dist / 40, 1.0), angle = Math.atan2(dy, dx);
-            holeObj.x += Math.cos(angle) * holeObj.speed * speedFactor; holeObj.y += Math.sin(angle) * holeObj.speed * speedFactor;
-        }
+        let dx = touchCurrentPos.x - touchStartPos.x, dy = touchCurrentPos.y - touchStartPos.y;
+        if(Math.hypot(dx,dy)>5) { holeObj.x += Math.cos(Math.atan2(dy,dx))*3; holeObj.y += Math.sin(Math.atan2(dy,dx))*2.5; }
     }
-    if(holeObj.x < holeObj.r) holeObj.x = holeObj.r; if(holeObj.x > hCanvas.width - holeObj.r) holeObj.x = hCanvas.width - holeObj.r;
-    if(holeObj.y < 60) holeObj.y = 60; if(holeObj.y > hCanvas.height - holeObj.r) holeObj.y = hCanvas.height - holeObj.r;
-    while(gameObjects.length < MAX_CITY_OBJECTS) spawnCityObject(false);
-
-    for(let i = gameObjects.length - 1; i >= 0; i--) {
-        let obj = gameObjects[i];
+    if(gameObjects.length < 40) spawnCityObject(false);
+    gameObjects.forEach((obj, i) => {
         if(!obj.sucked) {
-            obj.y += 0.5; if(obj.y > hCanvas.height + 50) { gameObjects.splice(i, 1); continue; }
-            let checkDist = Math.hypot(obj.x - holeObj.x, (obj.y - holeObj.y) * 1.2), objRadius = Math.max(obj.w, obj.d) * 0.5;
-            if(holeObj.r > objRadius * 1.2) { if(checkDist < holeObj.r) obj.sucked = true; }
-            else if(checkDist < holeObj.r + objRadius) {
-                let angle = Math.atan2(obj.y - holeObj.y, obj.x - holeObj.x);
-                holeObj.x = obj.x - Math.cos(angle) * (holeObj.r + objRadius); holeObj.y = obj.y - Math.sin(angle) * (holeObj.r + objRadius) * 0.8;
-            }
+            obj.y += 0.4; if(obj.y > 480) gameObjects.splice(i,1);
+            if(Math.hypot(obj.x-holeObj.x, (obj.y-holeObj.y)*1.3) < holeObj.r) obj.sucked = true;
         } else {
-            obj.x += (holeObj.x - obj.x) * 0.22; obj.y += (holeObj.y - obj.y) * 0.22;
-            obj.scale -= 0.06; obj.zDepth += 3.8;
-            if(obj.scale <= 0.1 || obj.zDepth > 40) { scoreHole += obj.score; holeObj.targetR += Math.sqrt(obj.score) * 0.22; if(holeObj.targetR > 100) holeObj.targetR = 100; gameObjects.splice(i, 1); }
+            obj.x += (holeObj.x - obj.x)*0.2; obj.y += (holeObj.y - obj.y)*0.2; obj.scale -= 0.08; obj.z += 3;
+            if(obj.scale <= 0) { scoreHole += obj.score; holeObj.targetR += 1; gameObjects.splice(i,1); }
         }
-    }
-    gameObjects.sort((a, b) => a.y - b.y);
+    });
 }
-
-function draw3DObject(ctx, obj) {
-    let base = project3D(obj.x, obj.y); let sizeW = obj.w * obj.scale, sizeD = obj.d * obj.scale, sizeH = obj.h * obj.scale; base.y += obj.zDepth * 0.5;
-    ctx.save(); ctx.translate(base.x, base.y); ctx.rotate(obj.sucked ? obj.rot * 3 : obj.rot);
-    ctx.fillStyle = "rgba(0, 0, 0, 0.25)"; ctx.beginPath(); ctx.ellipse(0, 0, sizeW*0.6, sizeD*0.4, 0, 0, Math.PI*2); ctx.fill();
-    let frontColor = obj.color, sideColor = adjustColorBrightness(obj.color, -30), topColor = adjustColorBrightness(obj.color, 20);
-    if(obj.name.startsWith('building')) {
-        ctx.fillStyle = frontColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); ctx.fillStyle = "rgba(255, 242, 0, 0.6)";
-        for(let wy = -sizeH + 8; wy < -5; wy += 12) { for(let wx = -sizeW/2 + 5; wx < sizeW/2 - 5; wx += 8) { if(Math.random() > 0.3) ctx.fillRect(wx, wy, 4, 6); } }
-    } else if(obj.name === 'car' || obj.name === 'truck') {
-        ctx.fillStyle = sideColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); ctx.fillStyle = topColor; ctx.fillRect(-sizeW/2, -sizeH - 4, sizeW, 4);
-    } else { ctx.fillStyle = frontColor; ctx.fillRect(-sizeW/2, -sizeH, sizeW, sizeH); }
-    ctx.restore();
-}
-function adjustColorBrightness(hex, percent) { let R = parseInt(hex.substring(1,3),16), G = parseInt(hex.substring(3,5),16), B = parseInt(hex.substring(5,7),16); R = parseInt(R * (100 + percent) / 100); G = parseInt(G * (100 + percent) / 100); B = parseInt(B * (100 + percent) / 100); return "#"+((1<<24)+((R<255?R:255)<<16)+((G<255?G:255)<<8)+(B<255?B:255)).toString(16).slice(1); }
-
 function drawHoleGame() {
-    hCtx.clearRect(0, 0, hCanvas.width, hCanvas.height);
-    hCtx.strokeStyle = "rgba(255,255,255,0.04)"; hCtx.lineWidth = 1;
-    for(let i=-200; i<hCanvas.width+200; i+=30) { let pStart = project3D(i, 0), pEnd = project3D(i, hCanvas.height); hCtx.beginPath(); hCtx.moveTo(pStart.x, pStart.y); hCtx.lineTo(pEnd.x, pEnd.y); hCtx.stroke(); }
-    let holeProj = project3D(holeObj.x, holeObj.y); hCtx.fillStyle = "#09090d"; hCtx.beginPath(); hCtx.ellipse(holeProj.x, holeProj.y, holeObj.r, holeObj.r * 0.72, 0, 0, Math.PI*2); hCtx.fill();
-    hCtx.strokeStyle = "#bf5af2"; hCtx.lineWidth = 4; hCtx.beginPath(); hCtx.ellipse(holeProj.x, holeProj.y, holeObj.r, holeObj.r * 0.72, 0, 0, Math.PI*2); hCtx.stroke();
-    gameObjects.forEach(obj => draw3DObject(hCtx, obj));
-    if(touchStartPos && touchCurrentPos) {
-        hCtx.fillStyle = "rgba(255,255,255,0.08)"; hCtx.beginPath(); hCtx.arc(touchStartPos.x, touchStartPos.y, 35, 0, Math.PI*2); hCtx.fill();
-        hCtx.fillStyle = "#bf5af2"; hCtx.beginPath(); hCtx.arc(touchCurrentPos.x, touchCurrentPos.y, 16, 0, Math.PI*2); hCtx.fill();
-    }
-    hCtx.fillStyle = "#ffcc00"; hCtx.font = "900 15px sans-serif"; hCtx.textAlign = "left"; hCtx.fillText("⏱️ " + timeHole + "s", 15, 30);
-    hCtx.fillStyle = "#fff"; hCtx.font = "900 italic 15px sans-serif"; hCtx.textAlign = "right"; hCtx.fillText("SCORE: " + scoreHole, hCanvas.width - 15, 30);
-    if(gameOverHole) { hCtx.fillStyle = "rgba(10,10,15,0.92)"; hCtx.fillRect(0,0,hCanvas.width,hCanvas.height); hCtx.font = "900 26px sans-serif"; hCtx.textAlign = "center"; hCtx.fillStyle = "#bf5af2"; hCtx.fillText("TIME UP!", hCanvas.width/2, hCanvas.height/2 - 20); hCtx.fillStyle = "#fff"; hCtx.fillText("FINAL SCORE: " + scoreHole, hCanvas.width/2, hCanvas.height/2 + 20); }
+    hCtx.clearRect(0,0,340,460); hCtx.fillStyle="rgba(255,255,255,0.05)";
+    for(let i=0; i<340; i+=40) hCtx.fillRect(i,0,1,460);
+    hCtx.fillStyle="#09090d"; hCtx.strokeStyle="#bf5af2"; hCtx.lineWidth=3;
+    hCtx.beginPath(); hCtx.ellipse(holeObj.x, holeObj.y*0.8, holeObj.r, holeObj.r*0.7, 0, 0, Math.PI*2); hCtx.fill(); hCtx.stroke();
+    gameObjects.forEach(o => {
+        hCtx.save(); hCtx.translate(o.x, o.y*0.8 + o.z); hCtx.fillStyle=o.color;
+        hCtx.fillRect(-o.w*o.scale/2, -o.h*o.scale, o.w*o.scale, o.h*o.scale); hCtx.restore();
+    });
+    hCtx.fillStyle="#ffcc00"; hCtx.font="bold 14px sans-serif"; hCtx.fillText("⏱️ "+timeHole+"s", 15, 30);
+    hCtx.fillText("SCORE: "+scoreHole, 240, 30);
 }
-startHoleBtn.addEventListener("click", () => { initHoleGame(); activeHole = true; });
+startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 ロジック 2: LAST WAR
+   🔥 GAME 2: LAST WAR
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
-let activeLW = false, scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = false, lwLevel = 1, playerX = 100;
-let bullets = [], sideGates = [], enemies = [], dynamicTexts = [];
-const playerY = 435, playableWidth = 220;
+let activeLW = false, scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = false, playerX = 160;
+let bullets = [], enemies = [], gates = [];
 
 function initLastWar() {
-    scoreLW = 0; soldierCount = 5; lwFrame = 0; lwLevel = 1; gameOverLW = false; playerX = 100;
-    bullets = []; enemies = []; dynamicTexts = []; sideGates = []; startLwBtn.textContent = "ABORT OPERATION";
-    for(let i = 0; i < 4; i++) spawnSideGate(-i * 140 - 100);
-}
-function spawnSideGate(yPos) {
-    let type = Math.random() > 0.4 ? 'add' : 'mult', val = type === 'add' ? (Math.floor(Math.random() * 6) + 4 + Math.floor(lwLevel * 0.5)) : 2;
-    sideGates.push({ x: playableWidth + 6, y: yPos, w: lwCanvas.width - playableWidth - 12, h: 40, type: type, val: val });
-}
-function spawnEnemyWave() {
-    let count = Math.floor(Math.random() * 3) + 4 + Math.min(Math.floor(lwLevel / 2), 5);
-    for(let i=0; i<count; i++) {
-        let baseHp = Math.floor(Math.random() * 2) + 1 + Math.floor(lwLevel * 0.5);
-        enemies.push({ x: Math.random() * (playableWidth - 32) + 16, y: -20 - (Math.random() * 60), r: 8.5 + Math.min(baseHp * 0.4, 4), hp: baseHp, maxHp: baseHp, speed: 1.1 + (lwLevel * 0.11) });
-    }
+    scoreLW=0; soldierCount=5; lwFrame=0; gameOverLW=false; playerX=160; bullets=[]; enemies=[]; gates=[]; activeLW=true;
+    gates.push({x:10, y:-100, w:140, type:'add', v:5}, {x:170, y:-100, w:140, type:'mult', v:2});
 }
 lwCanvas.addEventListener("touchmove", (e) => {
-    if(!activeLW || gameOverLW) return;
-    let rect = lwCanvas.getBoundingClientRect(); playerX = (e.touches[0].clientX - rect.left) * (lwCanvas.width / rect.width);
-    if(playerX < 15) playerX = 15; if(playerX > lwCanvas.width - 15) playerX = lwCanvas.width - 15;
-}, {passive: true});
+    let r = lwCanvas.getBoundingClientRect(); playerX = (e.touches[0].clientX - r.left) * (320/r.width);
+}, {passive:true});
 
 function updateLastWar() {
-    if(!activeLW || gameOverLW) return;
-    lwFrame++;
-    let nextLevel = Math.floor(scoreLW / 400) + 1;
-    if(nextLevel > lwLevel) { lwLevel = nextLevel; dynamicTexts.push({ x: lwCanvas.width / 2, y: 200, txt: "⚠️ LEVEL UP: " + lwLevel, color: "#fff200", timer: 45 }); }
-    let fireInterval = Math.max(2, 8 - Math.floor(soldierCount / 20));
-    if(lwFrame % fireInterval === 0) {
-        let spreads = Math.min(Math.floor(soldierCount / 3) + 1, 15), squadWidth = Math.min(spreads * 5.5, 70);
-        for(let i=0; i<spreads; i++) {
-            let offset = spreads > 1 ? (i / (spreads - 1) - 0.5) * squadWidth : 0;
-            bullets.push({ x: playerX + offset, y: playerY - 10, speedY: 9, r: 3.5, power: 1 + Math.floor(lwLevel * 0.2) });
+    if(!activeLW || gameOverLW) return; lwFrame++;
+    if(lwFrame%10===0) bullets.push({x:playerX, y:420});
+    bullets.forEach((b,i)=> { b.y -= 7; if(b.y<-10) bullets.splice(i,1); });
+    gates.forEach(g => {
+        g.y += 1.5; if(g.y > 500) { g.y = -120; g.v = Math.random()>0.5?4:2; }
+        if(g.y>410 && g.y<430 && playerX>g.x && playerX<g.x+g.w) {
+            soldierCount = g.type==='add'?soldierCount+g.v : soldierCount*g.v; g.y = -200;
         }
-    }
-    bullets.forEach((b, idx) => { b.y -= b.speedY; if(b.y < -10) bullets.splice(idx, 1); });
-    sideGates.forEach((g, idx) => {
-        g.y += 1.4 + (lwLevel * 0.05);
-        if(g.y + g.h >= playerY - 8 && g.y <= playerY + 15) {
-            if(playerX + 20 > g.x && playerX - 20 < g.x + g.w) {
-                soldierCount = g.type === 'add' ? soldierCount + g.val : soldierCount * g.val;
-                if(soldierCount > 100) soldierCount = 100;
-                dynamicTexts.push({ x: g.x + g.w/2, y: playerY - 20, txt: (g.type==='add'?'+':'×') + g.val, color: "#00ffcc", timer: 25 });
-                sideGates.splice(idx, 1); spawnSideGate(-60);
-            }
-        }
-        if(g.y > lwCanvas.height) { sideGates.splice(idx, 1); spawnSideGate(-40); }
     });
-    if(lwFrame % Math.max(20, 48 - lwLevel * 3) === 0) spawnEnemyWave();
-    for (let i = enemies.length - 1; i >= 0; i--) {
-        let e = enemies[i]; e.y += e.speed; let isDead = false;
-        for (let j = bullets.length - 1; j >= 0; j--) {
-            let b = bullets[j];
-            if(Math.hypot(b.x - e.x, b.y - e.y) < (e.r + b.r)) { bullets.splice(j, 1); e.hp -= b.power; if(e.hp <= 0) { isDead = true; break; } }
-        }
-        if (isDead) { enemies.splice(i, 1); scoreLW += 10; continue; }
-        if(e.y >= lwCanvas.height - 35) { gameOverLW = true; activeLW = false; startLwBtn.textContent = "RETRY OPERATION"; }
-    }
+    if(lwFrame%40===0) enemies.push({x:Math.random()*280+20, y:-20, hp:3});
+    enemies.forEach((e,i)=> {
+        e.y += 1.5; if(e.y>450) gameOverLW=true;
+        bullets.forEach((b,bi)=> { if(Math.hypot(b.x-e.x, b.y-e.y)<15) { e.hp--; bullets.splice(bi,1); if(e.hp<=0) { enemies.splice(i,1); scoreLW+=10; } } });
+    });
 }
 function drawLastWar() {
-    lwCtx.clearRect(0, 0, lwCanvas.width, lwCanvas.height);
-    lwCtx.strokeStyle = "rgba(255,255,255,0.2)"; lwCtx.lineWidth = 4; lwCtx.beginPath(); lwCtx.moveTo(playableWidth, 0); lwCtx.lineTo(playableWidth, lwCanvas.height); lwCtx.stroke();
-    sideGates.forEach(g => { lwCtx.fillStyle = "rgba(0, 150, 255, 0.9)"; lwCtx.fillRect(g.x, g.y, g.w, g.h); lwCtx.font = "900 16px sans-serif"; lwCtx.fillStyle = "#fff"; lwCtx.textAlign = "center"; lwCtx.fillText((g.type === 'add' ? '+' : '×') + g.val, g.x + g.w/2, g.y + 26); });
-    lwCtx.fillStyle = "#fff200"; bullets.forEach(b => { lwCtx.beginPath(); lwCtx.arc(b.x, b.y, b.r, 0, Math.PI*2); lwCtx.fill(); });
-    enemies.forEach(e => { lwCtx.fillStyle = "#dc3545"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y, e.r, 0, Math.PI*2); lwCtx.fill(); });
-    let displayCount = Math.min(soldierCount, 40);
-    for(let i=0; i<displayCount; i++) { lwCtx.fillStyle = "#007bff"; lwCtx.beginPath(); lwCtx.arc(playerX + (i%5 - 2)*8, playerY + Math.floor(i/5)*8, 4, 0, Math.PI*2); lwCtx.fill(); }
-    lwCtx.fillStyle = "#00f0ff"; lwCtx.font = "900 13px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillText("ARMY: " + soldierCount, playerX, playerY - 15);
-    lwCtx.fillStyle = "#ff2d55"; lwCtx.textAlign = "left"; lwCtx.fillText("⭐ LV " + lwLevel, 12, 25);
-    lwCtx.fillStyle = "#fff"; lwCtx.textAlign = "right"; lwCtx.fillText("SCORE: " + scoreLW, lwCanvas.width - 12, 25);
-    dynamicTexts.forEach((t, i) => { lwCtx.fillStyle = t.color; lwCtx.font = "900 15px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillText(t.txt, t.x, t.y); t.y -= 0.8; t.timer--; if(t.timer <= 0) dynamicTexts.splice(i, 1); });
-    if(gameOverLW) { lwCtx.fillStyle = "rgba(10,12,10,0.95)"; lwCtx.fillRect(0,0,lwCanvas.width,lwCanvas.height); lwCtx.font = "900 22px sans-serif"; lwCtx.textAlign = "center"; lwCtx.fillStyle = "#ff1a00"; lwCtx.fillText("DEFENSE CRUSHED", lwCanvas.width/2, lwCanvas.height/2); }
+    lwCtx.clearRect(0,0,320,480);
+    gates.forEach(g => { lwCtx.fillStyle="rgba(0,120,255,0.6)"; lwCtx.fillRect(g.x,g.y,g.w,30); lwCtx.fillStyle="#fff"; lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+20); });
+    lwCtx.fillStyle="#ffcc00"; bullets.forEach(b=>lwCtx.fillRect(b.x-2,b.y,4,10));
+    lwCtx.fillStyle="#ff3b30"; enemies.forEach(e=>lwCtx.beginPath(lwCtx.arc(e.x,e.y,10,0,Math.PI*2,lwCtx.fill())));
+    lwCtx.fillStyle="#00f2fe"; lwCtx.fillText("👥 "+soldierCount, playerX-15, 440);
+    lwCtx.fillStyle="#fff"; lwCtx.fillText("SCORE: "+scoreLW, 10, 25);
 }
-startLwBtn.addEventListener("click", () => { initLastWar(); activeLW = true; });
+startLwBtn.addEventListener("click", () => initLastWar());
 
 
 /* ====================================================================
-   🧱 ロジック 3: BLOCK BREAKER
+   🧱 GAME 3: BLOCK BREAKER
    ==================================================================== */
 const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
-let activeBB = false, bx, by, bdx, bdy, bpX, bricks, scoreBB, gameOverBB = false;
-const brR = 7, pToH = 12, pToW = 75, brW = 46, brH = 16, brP = 6, brTop = 40, brLeft = 16;
+let activeBB = false, bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = false;
 
 function initBreaker() {
-    bx = bCanvas.width / 2; by = bCanvas.height - 45; bdx = 2.0; bdy = -3.5; bpX = (bCanvas.width - pToW) / 2; scoreBB = 0; bricks = []; gameOverBB = false;
-    startBbBtn.textContent = "RESET AREA";
-    for(let i=0; i<6; i++) { bricks[i] = []; for(let j=0; j<5; j++) bricks[i][j] = { x:0, y:0, v:1 }; }
+    bx=170; by=320; bdx=2; bdy=-3; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true;
+    for(let i=0;i<6;i++) { bricks[i]=[]; for(let j=0;j<4;j++) bricks[i][j]=1; }
 }
 bCanvas.addEventListener("touchmove", (e) => {
-    if(!activeBB || gameOverBB) return;
-    let rect = bCanvas.getBoundingClientRect(); bpX = (e.touches[0].clientX - rect.left) * (bCanvas.width / rect.width) - pToW / 2;
-    if(bpX < 0) bpX = 0; if(bpX > bCanvas.width - pToW) bpX = bCanvas.width - pToW;
-}, {passive: true});
+    let r = bCanvas.getBoundingClientRect(); bpX = (e.touches[0].clientX - r.left)*(340/r.width) - 35;
+}, {passive:true});
 
 function updateBreaker() {
     if(!activeBB || gameOverBB) return;
-    for(let i=0; i<6; i++) {
-        for(let j=0; j<5; j++) {
-            let b = bricks[i][j];
-            if(b.v === 1 && bx + brR > b.x && bx - brR < b.x + brW && by + brR > b.y && by - brR < b.y + brH) {
-                b.v = 0; scoreBB++; bdy = -bdy;
-                if(scoreBB === 30) { gameOverBB = true; activeBB = false; startBbBtn.textContent = "PERFECT! RETRY"; }
-                return;
+    bx+=bdx; by+=bdy; if(bx<5||bx>335) bdx=-bdx; if(by<5) bdy=-bdy;
+    if(by>340 && bx>bpX && bx<bpX+70) bdy=-3; if(by>370) gameOverBB=true;
+    for(let i=0;i<6;i++){
+        for(let j=0;j<4;j++){
+            if(bricks[i][j]===1){
+                let x=i*50+20, y=j*20+40;
+                if(bx>x && bx<x+45 && by>y && by<y+15) { bdy=-bdy; bricks[i][j]=0; scoreBB++; }
             }
         }
     }
-    if(bx + bdx > bCanvas.width - brR || bx + bdx < brR) bdx = -bdx;
-    if(by + bdy < brR) bdy = -bdy;
-
-    let paddleTopY = bCanvas.height - pToH - 10;
-    if (bdy > 0 && by + brR >= paddleTopY && by - brR <= paddleTopY + pToH) {
-        if (bx >= bpX && bx <= bpX + pToW) {
-            bdy = -Math.abs(bdy);
-            let hitPoint = (bx - (bpX + pToW / 2)) / (pToW / 2);
-            bdx = hitPoint * 4.0; 
-            by = paddleTopY - brR;
-        }
-    }
-    if(by > bCanvas.height) { gameOverBB = true; activeBB = false; startBbBtn.textContent = "RETRY MISSION"; }
-    bx += bdx; by += bdy;
 }
-
 function drawBreaker() {
-    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
-    for(let i=0; i<6; i++) {
-        for(let j=0; j<5; j++) {
-            if(bricks[i][j] && bricks[i][j].v === 1) {
-                let xPos = i * (brW + brP) + brLeft, yPos = j * (brH + brP) + brTop; bricks[i][j].x = xPos; bricks[i][j].y = yPos;
-                bCtx.fillStyle = j===0?"#ff453a":j===1?"#ff9f0a":"#0a84ff"; bCtx.fillRect(xPos, yPos, brW, brH);
-            }
-        }
-    }
-    bCtx.fillStyle = "#bf5af2"; bCtx.beginPath(); bCtx.arc(bx, by, brR, 0, Math.PI*2); bCtx.fill();
-    bCtx.fillStyle = "#0a84ff"; bCtx.fillRect(bpX, bCanvas.height - pToH - 10, pToW, pToH);
-    bCtx.fillStyle = "#fff"; bCtx.font = "bold 14px monospace"; bCtx.textAlign = "left"; bCtx.fillText("SCORE: "+scoreBB, 16, 25);
-    if(gameOverBB) { bCtx.fillStyle = "rgba(10,10,15,0.9)"; bCtx.fillRect(0,0,bCanvas.width,bCanvas.height); bCtx.font = "900 24px sans-serif"; bCtx.textAlign = "center"; bCtx.fillStyle = scoreBB===30?"#30d158":"#ff3b30"; bCtx.fillText(scoreBB===30?"STAGE CLEAR!":"GAME OVER", bCanvas.width/2, bCanvas.height/2); }
+    bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 70, 10);
+    bCtx.fillStyle="#bf5af2"; bCtx.beginPath(); bCtx.arc(bx,by,6,0,Math.PI*2); bCtx.fill();
+    for(let i=0;i<6;i++){ for(let j=0;j<4;j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*20+40, 45, 15); } } }
+    bCtx.fillStyle="#fff"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
 }
-startBbBtn.addEventListener("click", () => { initBreaker(); activeBB = true; });
+startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 ロジック 4: PADDLE JUMPER 3D (スターゲイト操縦シミュレーション)
+   🛸 GAME 4: PADDLE JUMPER 3D (操作感直感化＆完全自動ドローン版)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
-let activePJ = false, scorePJ = 0, energyPJ = 100, pjFrame = 0, gameOverPJ = false;
-// 3Dシミュレーション用のカメラ・プレイヤー状態
-let camPitch = 0, camYaw = 0, shipSpeed = 4.0;
+let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
+
+let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; 
+let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
 let star3D = [], objects3D = [], drones3D = [];
+let isThrusting = false;
+let podAnimationFactor = 1.0; 
 let pjTouchStart = null;
 
 function initPuddleGame() {
-    scorePJ = 0; energyPJ = 100; pjFrame = 0; gameOverPJ = false; camPitch = 0; camYaw = 0; shipSpeed = 5.0;
-    star3D = []; objects3D = []; drones3D = []; activePJ = true;
-    
-    // 宇宙の星々を3D空間に初期化
-    for(let i=0; i<80; i++) {
-        star3D.push({ x: (Math.random()-0.5)*800, y: (Math.random()-0.5)*800, z: Math.random()*600 + 50 });
+    scorePJ = 0; energyPJ = 100; gameOverPJ = false; activePJ = true; pjFrame = 0;
+    ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 };
+    targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
+    star3D = []; objects3D = []; drones3D = []; isThrusting = false; podAnimationFactor = 1.0;
+
+    for(let i=0; i<100; i++) {
+        star3D.push({ x: (Math.random()-0.5)*1000, y: (Math.random()-0.5)*1000, z: Math.random()*800 + 50 });
     }
-    // 初期ターゲット（レイスの矢、スターゲイト）を配置
-    spawn3DObject('gate', 0, 0, 500);
-    for(let i=0; i<3; i++) spawn3DObject('wraith', (Math.random()-0.5)*300, (Math.random()-0.5)*300, Math.random()*400 + 200);
+    spawnPJObject('gate', 0, 0, 700);
+    for(let i=0; i<3; i++) spawnPJObject('wraith', (Math.random()-0.5)*400, (Math.random()-0.5)*400, Math.random()*500 + 300);
 }
 
-function spawn3DObject(type, x, y, z) {
-    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 65 : 18, hit: false });
+function spawnPJObject(type, x, y, z) {
+    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 70 : 20 });
 }
 
-// スマホのスワイプによる旋回（ピッチ & ヨー）コントロール
+// 【操作感直感化修正】指の動かした方向にそのまま追従（リバース操作の解消バグフィックス）
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
     let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY };
 }, {passive:true});
+
 pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
     let t = e.touches[0];
     let dx = t.clientX - pjTouchStart.x;
-    let dy = t.clientY - pjTouchStart.y;
-    // 操縦かんの動き（過剰に曲がりすぎないよう補正）
-    camYaw = dx * 0.0004;
-    camPitch = -dy * 0.0004;
-}, {passive:true});
-pCanvas.addEventListener("touchend", () => { camYaw = 0; camPitch = 0; pjTouchStart = null; });
+    let dy = t.clientY - pjTouchStart.y; // 符号の向きを反転して直感化
 
-// 加速ボタンとドローン発射ボタンのイベント
-document.getElementById("btnThrust").addEventListener("touchstart", (e) => { e.preventDefault(); if(activePJ) shipSpeed = 12.0; });
-document.getElementById("btnThrust").addEventListener("touchend", () => { shipSpeed = 5.0; });
-document.getElementById("btnFire").addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    if(!activePJ || gameOverPJ) return;
-    // パドルジャンパーから誘導ドローン（ミサイル）を正面に2発発射！
-    drones3D.push({ x: -15, y: 5, z: 10, vx: 0, vy: 0, vz: 18 });
-    drones3D.push({ x: 15, y: 5, z: 10, vx: 0, vy: 0, vz: 18 });
+    targetShip.x = Math.max(-120, Math.min(120, dx * 0.8));
+    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上にスワイプで上へ移動！
+    targetShip.rotZ = dx * 0.004;  
+    targetShip.rotX = dy * 0.002; 
+}, {passive:true});
+
+pCanvas.addEventListener("touchend", () => {
+    targetShip.x = 0; targetShip.y = 0; targetShip.rotZ = 0; targetShip.rotX = 0;
+    pjTouchStart = null;
+});
+
+// 加速ボタンのバインディング
+const thrustBtn = document.getElementById("btnThrust");
+['touchstart', 'mousedown'].forEach(evt => {
+    thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = true; });
+});
+['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+    thrustBtn.addEventListener(evt, () => { isThrusting = false; });
 });
 
 function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return;
     pjFrame++;
 
-    // 1. 星の3D移動と旋回反映
+    // 自機移動処理
+    ship3D.x += (targetShip.x - ship3D.x) * 0.12;
+    ship3D.y += (targetShip.y - ship3D.y) * 0.12;
+    ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.15;
+    ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.15;
+
+    // 変形アニメーション
+    if(isThrusting) {
+        podAnimationFactor += (0.0 - podAnimationFactor) * 0.2; 
+    } else {
+        podAnimationFactor += (1.0 - podAnimationFactor) * 0.1; 
+    }
+    let speed = isThrusting ? 14.0 : 5.0;
+
+    // 【全自動ドローンシステム】45フレーム（約0.7秒）に一度、索敵範囲内の敵を全自動ロックオンして迎撃
+    if(pjFrame % 45 === 0) {
+        let targets = objects3D.filter(o => o.type === 'wraith');
+        if(targets.length > 0) {
+            // 左右のポッドからオートツインミサイル発射
+            drones3D.push({ x: ship3D.x - 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
+            drones3D.push({ x: ship3D.x + 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
+        }
+    }
+
+    let camX = ship3D.x * 0.06;
+    let camY = ship3D.y * 0.06;
+
+    // 星の3D背景演算
     star3D.forEach(s => {
-        // 船の旋回（カメラ回転の逆変換）
-        let x1 = s.x - camYaw * s.z; s.x = x1;
-        let y1 = s.y - camPitch * s.z; s.y = y1;
-        // 前進
-        s.z -= shipSpeed;
-        if(s.z <= 0) { s.x = (Math.random()-0.5)*800; s.y = (Math.random()-0.5)*800; s.z = 600; }
+        s.z -= speed; s.x -= camX; s.y -= camY;
+        if(s.z <= 10) { s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*1000; s.z = 800; }
     });
 
-    // 2. ドローン（誘導ミサイル）の更新
+    // 誘導ドローンの全自動追尾追従
     for(let i=drones3D.length-1; i>=0; i--) {
-        let d = drones3D[i];
-        d.z += d.vz; d.x += d.vx; d.y += d.vy;
-        if(d.z > 700) { drones3D.splice(i, 1); continue; }
-
-        // 最寄りの敵への超簡易誘導
-        if(objects3D.length > 0) {
-            let target = objects3D[0];
-            d.vx += (target.x - d.x) * 0.03;
-            d.vy += (target.y - d.y) * 0.03;
+        let d = drones3D[i]; d.z += d.vz; d.x += d.vx - camX; d.y += d.vy - camY;
+        if(d.z > 800) { drones3D.splice(i,1); continue; }
+        
+        let targets = objects3D.filter(o => o.type === 'wraith');
+        if(targets.length > 0) {
+            // 最も近いターゲットへ軌道を自動修正
+            d.vx += (targets[0].x - d.x) * 0.05; d.vy += (targets[0].y - d.y) * 0.05;
         }
     }
 
-    // 3. 3D敵オブジェクト、スターゲイトの処理
+    // 障害物・エネミーの移動と当たり判定
     for(let i=objects3D.length-1; i>=0; i--) {
-        let o = objects3D[i];
-        o.x -= camYaw * o.z; o.y -= camPitch * o.z; o.z -= shipSpeed;
+        let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
 
-        // ドローンとの当たり判定
+        // ドローンとのヒット
         for(let j=drones3D.length-1; j>=0; j--) {
             let d = drones3D[j];
-            if(Math.hypot(o.x - d.x, o.y - d.y, o.z - d.z) < o.r + 5) {
+            if(Math.hypot(o.x-d.x, o.y-d.y, o.z-d.z) < o.r + 12) {
                 if(o.type === 'wraith') {
-                    o.hit = true; scorePJ += 100;
-                    drones3D.splice(j, 1);
-                    objects3D.splice(i, 1);
-                    break;
+                    scorePJ += 100; drones3D.splice(j,1); objects3D.splice(i,1); break;
                 }
             }
         }
 
-        // 自機との衝突、またはゲイト通過判定
-        if(o.z <= 15) {
-            if(o.z < -20) { objects3D.splice(i,1); continue; }
-            let distToShip = Math.hypot(o.x, o.y);
-            if(o.type === 'gate') {
-                if(distToShip < o.r) { // ゲイト通過成功！
-                    scorePJ += 500;
-                    energyPJ = Math.min(100, energyPJ + 25);
-                } else { // ゲイトのフチに激突
-                    energyPJ -= 40;
+        // 自機との衝突
+        if(o.z <= 40 && o.z > 0) {
+            let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
+            if(dist < o.r + 15) {
+                if(o.type === 'gate') {
+                    scorePJ += 500; energyPJ = Math.min(100, energyPJ + 20); 
+                } else {
+                    energyPJ -= 25; 
                 }
-            } else if(o.type === 'wraith') {
-                energyPJ -= 20; // 敵船との接触ダメージ
+                objects3D.splice(i,1);
             }
-            objects3D.splice(i, 1);
+        } else if(o.z <= 0) {
+            objects3D.splice(i,1);
         }
     }
 
-    // オブジェクトの定期補充
     if(objects3D.length < 4) {
-        if(Math.random() > 0.4) spawn3DObject('wraith', (Math.random()-0.5)*250, (Math.random()-0.5)*250, 600);
-        else spawn3DObject('gate', (Math.random()-0.5)*100, (Math.random()-0.5)*100, 650);
+        if(Math.random() > 0.35) spawnPJObject('wraith', (Math.random()-0.5)*350, (Math.random()-0.5)*350, 750);
+        else spawnPJObject('gate', (Math.random()-0.5)*120, (Math.random()-0.5)*120, 800);
     }
 
     if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
+}
+
+function project(x, y, z, cx, cy) {
+    let fov = 220; if(z <= 0) z = 1;
+    return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z };
 }
 
 function drawPuddleGame() {
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
     let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
 
-    // 1. 星の描画 (3D透過投影)
+    // 1. 星
     pCtx.fillStyle = "#ffffff";
     star3D.forEach(s => {
-        if(s.z <= 0) return;
-        let sx = (s.x / s.z) * 200 + cx;
-        let sy = (s.y / s.z) * 200 + cy;
-        let size = Math.max(0.5, (600 - s.z) / 150);
-        if(sx >= 0 && sx <= pCanvas.width && sy >=0 && sy <= pCanvas.height) {
-            pCtx.fillRect(sx, sy, size, size);
+        let pt = project(s.x, s.y, s.z, cx, cy);
+        if(pt.x >= 0 && pt.x <= pCanvas.width && pt.y >= 0 && pt.y <= pCanvas.height) {
+            let sz = Math.max(0.6, pt.scale * 1.5);
+            pCtx.fillRect(pt.x, pt.y, sz, sz);
         }
     });
 
-    // 2. ドローンの描画
+    // 2. ドローン弾
     drones3D.forEach(d => {
-        if(d.z <= 0) return;
-        let dx = (d.x / d.z) * 200 + cx;
-        let dy = (d.y / d.z) * 200 + cy;
-        let r = Math.max(2, (700 - d.z) / 40);
-        pCtx.fillStyle = "#ffcc00"; pCtx.shadowBlur = 10; pCtx.shadowColor = "#ff9f0a";
-        pCtx.beginPath(); pCtx.arc(dx, dy, r, 0, Math.PI*2); pCtx.fill();
-        pCtx.shadowBlur = 0;
+        let pt = project(d.x, d.y, d.z, cx, cy);
+        pCtx.fillStyle = "#00f2fe"; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, Math.max(2.5, pt.scale*2.2), 0, Math.PI*2); pCtx.fill();
     });
 
-    // 3. 3Dオブジェクト（敵・ゲイト）のワイヤーフレーム風描画
-    objects3D.sort((a,b) => b.z - a.z).forEach(o => {
-        if(o.z <= 10) return;
-        let ox = (o.x / o.z) * 200 + cx;
-        let oy = (o.y / o.z) * 200 + cy;
-        let size = (o.r / o.z) * 200;
+    // 3. 敵・ゲイト
+    objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
+        let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.6;
+        if(pt.x < -100 || pt.x > pCanvas.width+100 || pt.y < -100 || pt.y > pCanvas.height+100) return;
 
         if(o.type === 'gate') {
-            // スターゲイト (円形型超空間跳躍装置)
-            pCtx.strokeStyle = "#0a84ff"; pCtx.lineWidth = Math.max(2, 400/o.z);
-            pCtx.beginPath(); pCtx.arc(ox, oy, size, 0, Math.PI*2); pCtx.stroke();
-            // イベントホライズン（内側の水面エフェクト）
-            pCtx.fillStyle = "rgba(0, 242, 254, 0.2)"; pCtx.fill();
-            // シェブロン（ロック用パーツの点灯イメージ）
-            pCtx.fillStyle = "#ff9f0a";
-            for(let a=0; a<Math.PI*2; a+=Math.PI/4) {
-                pCtx.fillRect(ox+Math.cos(a)*size - 2, oy+Math.sin(a)*size - 2, 4, 4);
-            }
+            pCtx.strokeStyle = "#0a84ff"; pCtx.lineWidth = Math.max(1.5, pt.scale*0.4);
+            pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
+            pCtx.fillStyle = "rgba(0, 242, 254, 0.12)"; pCtx.fill();
+            pCtx.fillStyle = "#ff9f0a"; 
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) pCtx.fillRect(pt.x+Math.cos(a)*sz-2, pt.y+Math.sin(a)*sz-2, 4, 4);
         } else {
-            // レイス・ダート（敵機戦闘機）
-            pCtx.strokeStyle = "#30d158"; pCtx.lineWidth = 1.5;
-            pCtx.beginPath();
-            pCtx.moveTo(ox, oy - size); pCtx.lineTo(ox - size, oy + size/2);
-            pCtx.lineTo(ox + size, oy + size/2); pCtx.closePath(); pCtx.stroke();
-            pCtx.fillStyle = "rgba(48,209,88,0.2)"; pCtx.fill();
+            pCtx.strokeStyle = "#ff3b30"; pCtx.lineWidth = 1.5; pCtx.fillStyle = "rgba(255,59,48,0.15)";
+            pCtx.beginPath(); pCtx.moveTo(pt.x, pt.y - sz); pCtx.lineTo(pt.x - sz, pt.y + sz*0.6); pCtx.lineTo(pt.x + sz, pt.y + sz*0.6); pCtx.closePath(); pCtx.stroke(); pCtx.fill();
         }
     });
 
-    // 4. パドルジャンパーコクピットのHUD（照準器など）
-    pCtx.strokeStyle = "rgba(0, 242, 254, 0.4)"; pCtx.lineWidth = 1;
-    pCtx.beginPath(); pCtx.arc(cx, cy, 30, 0, Math.PI*2); pCtx.stroke();
-    pCtx.beginPath(); pCtx.moveTo(cx - 45, cy); pCtx.lineTo(cx + 45, cy); pCtx.moveTo(cx, cy - 45); pCtx.lineTo(cx, cy + 45); pCtx.stroke();
+    // 4. 三人称自機
+    draw3DPlayerJumper(cx, cy);
 
-    // ジャンパーの風防（コクピットフレーム）の演出
-    pCtx.strokeStyle = "#15151e"; pCtx.lineWidth = 6;
-    pCtx.strokeRect(0, 0, pCanvas.width, pCanvas.height);
-
-    // HUDステータス表示
+    // HUD
     pCtx.fillStyle = "#00f2fe"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
-    pCtx.fillText("SHIELD: " + energyPJ + "%", 15, 25);
-    pCtx.fillStyle = "#fff"; pCtx.textAlign = "right";
-    pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
+    pCtx.fillText("🛡️ SHIELD: " + energyPJ + "%", 15, 25);
+    
+    // オートインターセプター作動ランプ
+    pCtx.fillStyle = "#30d158"; pCtx.fillText("🤖 AUTO DRONE: ONLINE", 15, 43);
+
+    pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
+    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.font = "italic bold 11px sans-serif"; pCtx.fillText("⚡PODS RETRACTED", pCanvas.width - 15, 43); }
 
     if(gameOverPJ) {
-        pCtx.fillStyle = "rgba(5,5,10,0.95)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
-        pCtx.font = "900 22px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
+        pCtx.fillStyle = "rgba(5,5,12,0.96)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+        pCtx.font = "900 18px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
         pCtx.fillText("ジャンパー大破 / GAME OVER", pCanvas.width/2, pCanvas.height/2);
     }
 }
 
+function draw3DPlayerJumper(cx, cy) {
+    let baseZ = 35;
+    let pt = project(ship3D.x, ship3D.y + 20, baseZ, cx, cy); 
+    let scale = pt.scale * 0.28;
+
+    pCtx.save();
+    pCtx.translate(pt.x, pt.y);
+    pCtx.rotate(ship3D.rotZ); 
+
+    pCtx.strokeStyle = "#00f2fe"; pCtx.lineWidth = 2;
+    pCtx.fillStyle = "rgba(10, 24, 40, 0.85)";
+    pCtx.shadowBlur = 8; pCtx.shadowColor = "#00f2fe";
+
+    // 船体中央
+    let w = 45 * scale, h = 26 * scale;
+    pCtx.beginPath();
+    pCtx.moveTo(-w, -h/2); pCtx.lineTo(w, -h/2);
+    pCtx.lineTo(w + 10, h/2); pCtx.lineTo(-w - 10, h/2);
+    pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+
+    // 窓
+    pCtx.fillStyle = "rgba(0, 242, 254, 0.4)";
+    pCtx.beginPath();
+    pCtx.moveTo(-w+5, -h/2+3); pCtx.lineTo(w-5, -h/2+3);
+    pCtx.lineTo(w, 0); pCtx.lineTo(-w, 0);
+    pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+
+    // 左右ドライブポッド
+    let podOffset = 18 * podAnimationFactor * scale; 
+    pCtx.fillStyle = "rgba(15, 15, 25, 0.9)";
+    pCtx.shadowBlur = 0;
+
+    // 左
+    pCtx.beginPath(); pCtx.rect(-w - 8 - podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(-w - 6 - podOffset, h/1.5, 4*scale, 5); }
+
+    // 右
+    pCtx.beginPath(); pCtx.rect(w + podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(w + 2 + podOffset, h/1.5, 4*scale, 5); }
+
+    pCtx.restore();
+}
+
 
 /* ====================================================================
-   🔄 統合高速ループ管理システム
+   🔄 メインループとオーディオルーパー統合
    ==================================================================== */
 function masterGameLoop() {
     if (activeHole) { updateHolePhysics(); drawHoleGame(); }
@@ -713,9 +635,7 @@ function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), se
 player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
-  });
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); });
 }
 </script>
 </body>
