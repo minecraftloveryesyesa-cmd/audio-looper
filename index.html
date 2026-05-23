@@ -47,7 +47,7 @@ body {
 .game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
 .game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); }
 .game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); }
-.game-launch-btn.puddle { background: linear-gradient(135deg, #00f2fe, #4facfe); text-shadow: 0 0 8px rgba(0,242,254,0.6); display: block !important; }
+.game-launch-btn.puddle { background: linear-gradient(135deg, #5c6b5d, #2e3b2f); text-shadow: 0 0 8px rgba(92,107,93,0.6); display: block !important; }
 
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
@@ -94,10 +94,10 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 #breakerCanvas { background: #09090d; width: 340px; height: 380px; display: block; }
 
 /* 🛸 パドルジャンパー専用 */
-#puddleCanvas { background: #020207; width: 340px; height: 370px; display: block; }
+#puddleCanvas { background: #04060a; width: 340px; height: 370px; display: block; }
 .jumper-controls { display: flex; width: 340px; justify-content: center; margin-top: 10px; }
-.ctrl-pad { background: linear-gradient(135deg, #00f2fe, #4facfe); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #050508; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); touch-action: none; user-select: none; -webkit-user-select: none; }
-.ctrl-pad:active { background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; }
+.ctrl-pad { background: linear-gradient(135deg, #6b7c6d, #3a473b); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #fff; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ctrl-pad:active { background: linear-gradient(135deg, #4d5a4e, #252e26); }
 </style>
 </head>
 <body>
@@ -113,7 +113,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
     <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO</button>
     <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR</button>
     <button class="game-launch-btn breaker" id="launchBreakerViewBtn">BLOCK BREAKER</button>
-    <button class="game-launch-btn puddle" id="launchPuddleBtn">🛸 PADDLE JUMPER 3D</button>
+    <button class="game-launch-btn puddle" id="launchPuddleBtn">🛸 PADDLE JUMPER (STAGATE)</button>
 </div>
 
 <div class="main-container" id="mainContainer">
@@ -163,14 +163,14 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 <div class="game-overlay-screen" id="puddleScreen">
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
-        <h1 style="color: #00f2fe; text-shadow: 0 0 10px #4facfe;">🛸 PADDLE JUMPER 3D</h1>
-        <div class="canvas-container" style="border: 3px solid #00f2fe;">
+        <h1 style="color: #8da390; text-shadow: 0 0 10px rgba(141,163,144,0.5);">🛸 PADDLE JUMPER</h1>
+        <div class="canvas-container" style="border: 3px solid #5c6b5d;">
             <canvas id="puddleCanvas" width="340" height="370"></canvas>
         </div>
         <div class="jumper-controls">
-            <button class="ctrl-pad" id="btnThrust">🚀 HYPER THRUST (加速・変形)</button>
+            <button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (外殻ユニット展開)</button>
         </div>
-        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※上スワイプで上昇、下で下降。ドローンは全自動で敵を追尾撃破！</p>
+        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※スワイプで上下左右に機体が傾きながら移動します</p>
     </div>
 </div>
 
@@ -350,39 +350,40 @@ startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER 3D (グラフィックスドット完全再現版)
+   🛸 GAME 4: PADDLE JUMPER (スターゲイト機体完全再現・2.5Dフライト)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
 let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
 
 let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; 
 let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
-let star3D = [], objects3D = [], drones3D = [];
+let star3D = [], objects3D = [], particles = [];
 let isThrusting = false;
-let podAnimationFactor = 1.0; 
+let podExtension = 0.0; // ドライブポッド展開アニメーション用
 let pjTouchStart = null;
 
 function initPuddleGame() {
     scorePJ = 0; energyPJ = 100; gameOverPJ = false; activePJ = true; pjFrame = 0;
     ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 };
     targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
-    star3D = []; objects3D = []; drones3D = []; isThrusting = false; podAnimationFactor = 1.0;
+    star3D = []; objects3D = []; particles = []; isThrusting = false; podExtension = 0.0;
 
-    for(let i=0; i<100; i++) {
-        star3D.push({ x: (Math.random()-0.5)*1000, y: (Math.random()-0.5)*1000, z: Math.random()*800 + 50 });
+    // ワームホール通過をイメージしたスターダスト
+    for(let i=0; i<80; i++) {
+        star3D.push({ x: (Math.random()-0.5)*1200, y: (Math.random()-0.5)*1200, z: Math.random()*800 + 50, s: Math.random()*2+1 });
     }
-    spawnPJObject('gate', 0, 0, 700);
-    for(let i=0; i<3; i++) spawnPJObject('wraith', (Math.random()-0.5)*400, (Math.random()-0.5)*400, Math.random()*500 + 300);
+    // 初期のスターゲイトを配置
+    spawnPJObject('stargate', 0, 0, 700);
 }
 
 function spawnPJObject(type, x, y, z) {
-    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 70 : 20 });
+    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 90 : 25 });
 }
 
-// 【操作直感化】スワイプのズレをダイレクトに機体へ反映
+// 直感的なスワイプ追従コントロール
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
-    let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY };
+    let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY, baseShipX: ship3D.x, baseShipY: ship3D.y };
 }, {passive:true});
 
 pCanvas.addEventListener("touchmove", (e) => {
@@ -391,87 +392,65 @@ pCanvas.addEventListener("touchmove", (e) => {
     let dx = t.clientX - pjTouchStart.x;
     let dy = t.clientY - pjTouchStart.y;
 
-    targetShip.x = Math.max(-120, Math.min(120, dx * 0.8));
-    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上にスワイプしたら上に、下にスワイプしたら下に行く
-    targetShip.rotZ = dx * 0.004;  
+    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 0.7));
+    targetShip.y = Math.max(-100, Math.min(100, pjTouchStart.baseShipY + dy * 0.7));
+    targetShip.rotZ = dx * 0.002;  
     targetShip.rotX = dy * 0.002; 
 }, {passive:true});
 
 pCanvas.addEventListener("touchend", () => {
-    targetShip.x = 0; targetShip.y = 0; targetShip.rotZ = 0; targetShip.rotX = 0;
+    targetShip.rotZ = 0; targetShip.rotX = 0;
     pjTouchStart = null;
 });
 
+// ドライブポッド展開ボタンのトリガー
 const thrustBtn = document.getElementById("btnThrust");
 ['touchstart', 'mousedown'].forEach(evt => {
-    thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = true; });
-});
-['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
-    thrustBtn.addEventListener(evt, () => { isThrusting = false; });
+    thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = !isThrusting; });
 });
 
 function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return;
     pjFrame++;
 
-    ship3D.x += (targetShip.x - ship3D.x) * 0.12;
-    ship3D.y += (targetShip.y - ship3D.y) * 0.12;
-    ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.15;
-    ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.15;
+    // 位置と傾きのイージング追従
+    ship3D.x += (targetShip.x - ship3D.x) * 0.1;
+    ship3D.y += (targetShip.y - ship3D.y) * 0.1;
+    ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.1;
+    ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.1;
 
+    // ドライブポッド展開アニメーションのスムーズ化
     if(isThrusting) {
-        podAnimationFactor += (0.0 - podAnimationFactor) * 0.2; 
+        podExtension += (1.0 - podExtension) * 0.1;
     } else {
-        podAnimationFactor += (1.0 - podAnimationFactor) * 0.1; 
-    }
-    let speed = isThrusting ? 14.0 : 5.0;
-
-    // 【全自動ドローンシステム】索敵・自動追尾弾の射撃周期
-    if(pjFrame % 45 === 0) {
-        let targets = objects3D.filter(o => o.type === 'wraith');
-        if(targets.length > 0) {
-            drones3D.push({ x: ship3D.x - 22, y: ship3D.y + 10, z: 40, vx: 0, vy: 0, vz: 16 });
-            drones3D.push({ x: ship3D.x + 22, y: ship3D.y + 10, z: 40, vx: 0, vy: 0, vz: 16 });
-        }
+        podExtension += (0.0 - podExtension) * 0.1;
     }
 
-    let camX = ship3D.x * 0.06;
-    let camY = ship3D.y * 0.06;
+    let speed = isThrusting ? 15.0 : 7.0;
 
+    let camX = ship3D.x * 0.05;
+    let camY = ship3D.y * 0.05;
+
+    // 宇宙空間の移動
     star3D.forEach(s => {
         s.z -= speed; s.x -= camX; s.y -= camY;
-        if(s.z <= 10) { s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*1000; s.z = 800; }
+        if(s.z <= 10) { s.x = (Math.random()-0.5)*1200; s.y = (Math.random()-0.5)*1200; s.z = 800; }
     });
 
-    for(let i=drones3D.length-1; i>=0; i--) {
-        let d = drones3D[i]; d.z += d.vz; d.x += d.vx - camX; d.y += d.vy - camY;
-        if(d.z > 800) { drones3D.splice(i,1); continue; }
-        
-        let targets = objects3D.filter(o => o.type === 'wraith');
-        if(targets.length > 0) {
-            d.vx += (targets[0].x - d.x) * 0.05; d.vy += (targets[0].y - d.y) * 0.05;
-        }
-    }
-
+    // 障害物・ゲイトの移動処理
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
 
-        for(let j=drones3D.length-1; j>=0; j--) {
-            let d = drones3D[j];
-            if(Math.hypot(o.x-d.x, o.y-d.y, o.z-d.z) < o.r + 12) {
-                if(o.type === 'wraith') {
-                    scorePJ += 100; drones3D.splice(j,1); objects3D.splice(i,1); break;
-                }
-            }
-        }
-
-        if(o.z <= 40 && o.z > 0) {
+        // 衝突判定（機体付近を通過した時）
+        if(o.z <= 35 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
-            if(dist < o.r + 15) {
-                if(o.type === 'gate') {
-                    scorePJ += 500; energyPJ = Math.min(100, energyPJ + 20); 
+            if(dist < o.r + 20) {
+                if(o.type === 'stargate') {
+                    scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 15);
+                    // 通過エフェクト粒子
+                    for(let p=0; p<15; p++) particles.push({x: ship3D.x, y: ship3D.y, z: 40, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:30});
                 } else {
-                    energyPJ -= 25; 
+                    energyPJ -= 20;
                 }
                 objects3D.splice(i,1);
             }
@@ -480,16 +459,23 @@ function updatePuddlePhysics() {
         }
     }
 
-    if(objects3D.length < 4) {
-        if(Math.random() > 0.35) spawnPJObject('wraith', (Math.random()-0.5)*350, (Math.random()-0.5)*350, 750);
-        else spawnPJObject('gate', (Math.random()-0.5)*120, (Math.random()-0.5)*120, 800);
+    // パーティクル更新
+    for(let i=particles.length-1; i>=0; i--) {
+        let p = particles[i]; p.z -= speed * 0.5; p.x += p.vx; p.y += p.vy; p.life--;
+        if(p.life <= 0) particles.splice(i,1);
+    }
+
+    // 次のゲイトやデブリの生成
+    if(objects3D.length < 3) {
+        if(Math.random() > 0.4) spawnPJObject('debris', (Math.random()-0.5)*400, (Math.random()-0.5)*400, 800);
+        else spawnPJObject('stargate', (Math.random()-0.5)*150, (Math.random()-0.5)*150, 800);
     }
 
     if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
 }
 
 function project(x, y, z, cx, cy) {
-    let fov = 220; if(z <= 0) z = 1;
+    let fov = 240; if(z <= 0) z = 1;
     return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z };
 }
 
@@ -497,113 +483,211 @@ function drawPuddleGame() {
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
     let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
 
-    pCtx.fillStyle = "#ffffff";
+    // 背景星々
+    pCtx.fillStyle = "rgba(255, 255, 255, 0.7)";
     star3D.forEach(s => {
         let pt = project(s.x, s.y, s.z, cx, cy);
         if(pt.x >= 0 && pt.x <= pCanvas.width && pt.y >= 0 && pt.y <= pCanvas.height) {
-            let sz = Math.max(0.6, pt.scale * 1.5);
-            pCtx.fillRect(pt.x, pt.y, sz, sz);
+            pCtx.fillRect(pt.x, pt.y, s.s, s.s);
         }
     });
 
-    drones3D.forEach(d => {
-        let pt = project(d.x, d.y, d.z, cx, cy);
-        pCtx.fillStyle = "#ffcc00"; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, Math.max(3, pt.scale*2.5), 0, Math.PI*2); pCtx.fill();
+    // 粒子群の描画
+    particles.forEach(p => {
+        let pt = project(p.x, p.y, p.z, cx, cy);
+        pCtx.fillStyle = `rgba(0, 210, 255, ${p.life/30})`;
+        pCtx.fillRect(pt.x, pt.y, pt.scale*0.5, pt.scale*0.5);
     });
 
+    // 3Dオブジェクト描画
     objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
-        let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.6;
-        if(pt.x < -100 || pt.x > pCanvas.width+100 || pt.y < -100 || pt.y > pCanvas.height+100) return;
+        let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.5;
+        if(pt.x < -150 || pt.x > pCanvas.width+150 || pt.y < -150 || pt.y > pCanvas.height+150) return;
 
-        if(o.type === 'gate') {
-            pCtx.strokeStyle = "#0a84ff"; pCtx.lineWidth = Math.max(1.5, pt.scale*0.4);
+        if(o.type === 'stargate') {
+            // スターゲイトの巨大なリングを再現
+            pCtx.strokeStyle = "#43525c"; pCtx.lineWidth = Math.max(3, pt.scale * 0.5);
             pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
-            pCtx.fillStyle = "rgba(0, 242, 254, 0.12)"; pCtx.fill();
-            pCtx.fillStyle = "#ff9f0a"; 
-            for(let a=0; a<Math.PI*2; a+=Math.PI/4) pCtx.fillRect(pt.x+Math.cos(a)*sz-2, pt.y+Math.sin(a)*sz-2, 4, 4);
+            // イベントホライズン（内側の青いモヤ）
+            let grad = pCtx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, sz);
+            grad.addColorStop(0, "rgba(0, 110, 220, 0.5)");
+            grad.addColorStop(0.8, "rgba(0, 230, 255, 0.3)");
+シェーディング         grad.addColorStop(1, "rgba(0, 40, 80, 0.0)");
+            pCtx.fillStyle = grad; pCtx.fill();
+            // シェブロン（外枠の赤い固定鍵パーツ）
+            pCtx.fillStyle = "#ff5b05";
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) {
+                pCtx.fillRect(pt.x + Math.cos(a)*sz - 4, pt.y + Math.sin(a)*sz - 4, 8, 8);
+            }
         } else {
-            pCtx.strokeStyle = "#ff3b30"; pCtx.lineWidth = 1.5; pCtx.fillStyle = "rgba(255,59,48,0.15)";
-            pCtx.beginPath(); pCtx.moveTo(pt.x, pt.y - sz); pCtx.lineTo(pt.x - sz, pt.y + sz*0.6); pCtx.lineTo(pt.x + sz, pt.y + sz*0.6); pCtx.closePath(); pCtx.stroke(); pCtx.fill();
+            // 宇宙デブリ・アステロイド
+            pCtx.fillStyle = "#2d241e"; pCtx.strokeStyle = "#473a32"; pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            for(let a=0; a<Math.PI*2; a+=Math.PI/3) {
+                let r = sz * (0.8 + Math.sin(a*3 + o.z)*0.2);
+                let px = pt.x + Math.cos(a)*r, py = pt.y + Math.sin(a)*r;
+                if(a===0) pCtx.moveTo(px,py); else pCtx.lineTo(px,py);
+            }
+            pCtx.closePath(); pCtx.fill(); pCtx.stroke();
         }
     });
 
-    // 🛸 画像から完全再現されたドット機体をリアルタイム描画
-    draw3DPlayerJumper(cx, cy);
+    // 🛸 スターゲイトのパドルジャンパー本体を描画
+    drawStargateJumper(cx, cy);
 
-    pCtx.fillStyle = "#00f2fe"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
-    pCtx.fillText("🛡️ SHIELD: " + energyPJ + "%", 15, 25);
-    pCtx.fillStyle = "#30d158"; pCtx.fillText("🤖 AUTO DRONE: ONLINE", 15, 43);
+    // UIオーバーレイ
+    pCtx.fillStyle = "#8da390"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
+    pCtx.fillText("🛸 PADDLE JUMPER SYSTEM", 15, 25);
+    pCtx.fillStyle = isThrusting ? "#00f2fe" : "#8da390";
+    pCtx.fillText("⚙️ DRIVE PODS: " + (isThrusting ? "ENGAGED" : "RETRACTED"), 15, 43);
 
     pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
+    
+    // シールド耐久度バー表示
+    pCtx.fillStyle = "rgba(255,255,255,0.1)"; pCtx.fillRect(15, 55, 100, 6);
+    pCtx.fillStyle = energyPJ > 30 ? "#30d158" : "#ff3b30"; pCtx.fillRect(15, 55, energyPJ, 6);
 
     if(gameOverPJ) {
-        pCtx.fillStyle = "rgba(5,5,12,0.96)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
-        pCtx.font = "900 18px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
-        pCtx.fillText("ジャンパー大破 / GAME OVER", pCanvas.width/2, pCanvas.height/2);
+        pCtx.fillStyle = "rgba(5,7,12,0.95)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+        pCtx.font = "bold 16px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
+        pCtx.fillText("HULL CRITICAL / GAME OVER", pCanvas.width/2, pCanvas.height/2);
     }
 }
 
-// 🎨 アップロードされた画像のジャンパーをドット比率ベースで完全再現する描画エンジン
-function draw3DPlayerJumper(cx, cy) {
+// 🎨 アップロード画像をピクセル比・グラデーション・構造レベルで精密再現する描画エンジン
+function drawStargateJumper(cx, cy) {
     let baseZ = 35;
-    let pt = project(ship3D.x, ship3D.y + 15, baseZ, cx, cy); 
-    let baseScale = pt.scale * 0.18; // 画像のドット感を再現する拡大率
+    let pt = project(ship3D.x, ship3D.y + 10, baseZ, cx, cy); 
+    let scale = pt.scale * 0.42; 
 
     pCtx.save();
     pCtx.translate(pt.x, pt.y);
-    pCtx.rotate(ship3D.rotZ); 
+    pCtx.rotate(ship3D.rotZ);
+    // 上下のピッチ傾きを機体に反映
+    pCtx.transform(1, 0, 0, 1 - Math.abs(ship3D.rotX), 0, 0);
 
-    // ドットを描画するヘルパー関数
-    function drawDot(rx, ry, rw, rh, color) {
-        pCtx.fillStyle = color;
-        pCtx.fillRect(rx * baseScale, ry * baseScale, rw * baseScale, rh * baseScale);
-    }
+    // 画像カラーパレット：完全な金属オリーブ・ゴールドグリーン質感
+    let colorBodyDark = "#29332a";   // シャドウ部・パネルの彫り込み溝
+    let colorBodyBase = "#4a594c";   // 基本となるくすんだオリーブグリーン
+    let colorBodyLight = "#697a6b";  // 上部のハイライト金属色
+    let colorWindowFrame = "#524b3e"; // 窓枠のゴールドブロンズ色の縁
+    let colorInside = "#131714";      // コックピット内部の暗がり
+    let colorPodUnit = "#3d473f";    // 左右ユニット
 
-    // 1. 左右の大きな黄色いウイング（斜めカット・ポッドアニメーション連動）
-    let wingOffset = (1.0 - podAnimationFactor) * 8; // 変形時のウイング引き込み
+    // --- 1. 機体メインシリンダー（円筒形の本体）のカプセル描画 ---
+    // 外郭の丸みグラデーションを再現
+    let bodyGrad = pCtx.createLinearGradient(-35 * scale, 0, 35 * scale, 0);
+    bodyGrad.addColorStop(0, colorBodyDark);
+    bodyGrad.addColorStop(0.2, colorBodyBase);
+    bodyGrad.addColorStop(0.5, colorBodyLight);
+    bodyGrad.addColorStop(0.8, colorBodyBase);
+    bodyGrad.addColorStop(1, colorBodyDark);
+
+    pCtx.fillStyle = bodyGrad;
+    pCtx.strokeStyle = colorBodyDark;
+    pCtx.lineWidth = 1.5;
+
+    // 前面を丸く、後ろを円筒にした特徴的なシェイプをパスで生成
+    pCtx.beginPath();
+    pCtx.moveTo(-32 * scale, 15 * scale); // 左下
+    pCtx.lineTo(-32 * scale, -10 * scale); // 左側面
+    pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale); // 上部円弧
+    pCtx.lineTo(32 * scale, 15 * scale); // 右側面
+    pCtx.closePath();
+    pCtx.fill();
+    pCtx.stroke();
+
+    // --- 2. 画像にある表面のメカニカルなパネルライン（幾何学的な細い溝）の再現 ---
+    pCtx.strokeStyle = "rgba(20, 30, 22, 0.45)";
+    pCtx.lineWidth = 1;
+    // 縦方向のライン
+    pCtx.beginPath();
+    pCtx.moveTo(-20 * scale, -24 * scale); pCtx.lineTo(-20 * scale, 15 * scale);
+    pCtx.moveTo(20 * scale, -24 * scale); pCtx.lineTo(20 * scale, 15 * scale);
+    // 横方向の分割ライン
+    pCtx.moveTo(-32 * scale, -5 * scale); pCtx.lineTo(32 * scale, -5 * scale);
+    pCtx.moveTo(-32 * scale, 5 * scale); pCtx.lineTo(32 * scale, 5 * scale);
+    pCtx.stroke();
+
+    // --- 3. 正面の斜めカットされた巨大な窓枠 ＆ コックピット内部 ---
+    // 窓の外輪郭（ブロンズ色の傾斜フレーム）
+    pCtx.fillStyle = colorWindowFrame;
+    pCtx.beginPath();
+    pCtx.moveTo(-24 * scale, 10 * scale);
+    pCtx.lineTo(-24 * scale, -5 * scale);
+    pCtx.bezierCurveTo(-24 * scale, -22 * scale, 24 * scale, -22 * scale, 24 * scale, -5 * scale);
+    pCtx.lineTo(24 * scale, 10 * scale);
+    pCtx.closePath();
+    pCtx.fill();
+
+    // 窓の内側（コックピット内の空間）
+    pCtx.fillStyle = colorInside;
+    pCtx.beginPath();
+    pCtx.moveTo(-21 * scale, 8 * scale);
+    pCtx.lineTo(-21 * scale, -4 * scale);
+    pCtx.bezierCurveTo(-21 * scale, -19 * scale, 21 * scale, -19 * scale, 21 * scale, -4 * scale);
+    pCtx.lineTo(21 * scale, 8 * scale);
+    pCtx.closePath();
+    pCtx.fill();
+
+    // 窓からうっすら見えるシートやクルー（ドット状の内部ディテール）
+    pCtx.fillStyle = "#333b35";
+    pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale); // パイロット席
+    pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale);  // コ・パイロット席
+    pCtx.fillStyle = "rgba(0, 255, 150, 0.4)"; // コンソールの緑の光のシミュレート
+    pCtx.fillRect(-5 * scale, 2 * scale, 3 * scale, 2 * scale);
+    pCtx.fillRect(2 * scale, 2 * scale, 3 * scale, 2 * scale);
+
+    // --- 4. 左右の可動式ドライブポッド（外殻エンジンユニット） ---
+    // アニメーション変数 podExtension（0.0〜1.0）に応じて横にせり出す
+    let extOffset = podExtension * 12 * scale;
+
+    pCtx.fillStyle = colorPodUnit;
+    pCtx.strokeStyle = colorBodyDark;
     
-    // 左ウイング（黄色）
-    drawDot(-32 - wingOffset, 0, 8, 4, "#ffd100");
-    drawDot(-28 - wingOffset, -4, 12, 4, "#ffd100");
-    drawDot(-24 - wingOffset, -8, 8, 4, "#ffd100");
-    drawDot(-20 - wingOffset, -12, 6, 4, "#ffd100");
-    // ウイング先端の黒いフィン
-    drawDot(-34 - wingOffset, -2, 2, 6, "#1a1a1a");
-
-    // 右ウイング（黄色）
-    drawDot(24 + wingOffset, 0, 8, 4, "#ffd100");
-    drawDot(16 + wingOffset, -4, 12, 4, "#ffd100");
-    drawDot(16 + wingOffset, -8, 8, 4, "#ffd100");
-    drawDot(14 + wingOffset, -12, 6, 4, "#ffd100");
-    // ウイング先端の黒いフィン
-    drawDot(32 + wingOffset, -2, 2, 6, "#1a1a1a");
-
-    // 2. メインの赤いコックピットカプセル
-    // 特徴的な上部・下部の赤いドット外装
-    drawDot(-14, -14, 28, 4, "#e02424"); // 上フレーム
-    drawDot(-16, -10, 32, 6, "#e02424"); // メイン横フレーム
-    drawDot(-14, -4, 28, 12, "#ff3b30"); // コックピット下部ボディ（明るい赤）
-    drawDot(-10, 8, 20, 6, "#c01c1c");  // 底部スタビライザー
-    drawDot(-6, 14, 12, 4, "#8a1010");  // ノズル結合部
-
-    // 3. 中央の青いキャノピー（風防ガラス）
-    drawDot(-8, -10, 16, 6, "#00a2ff"); // 明るいスカイブルー
-    drawDot(-6, -4, 12, 4, "#0072ff");  // 濃いブルーのグラデーション
-
-    // 4. ドライブポッド・スラスター（左右のグレーパーツ）
-    drawDot(-18, -4, 4, 10, "#7a7a85"); // 左ポッド
-    drawDot(14, -4, 4, 10, "#7a7a85");  // 右ポッド
-
-    // 加速時のバーニアエフェクト（画像のブースターを再現）
+    // 左側ドライブポッド
+    pCtx.save();
+    pCtx.translate(-32 * scale - extOffset, 0);
+    pCtx.beginPath();
+    pCtx.moveTo(0, -10 * scale);
+    pCtx.lineTo(-6 * scale, -5 * scale);
+    pCtx.lineTo(-6 * scale, 12 * scale);
+    pCtx.lineTo(0, 8 * scale);
+    pCtx.closePath();
+    pCtx.fill(); pCtx.stroke();
+    // ポッド内の黄色い発光スリット
     if(isThrusting) {
-        let fl = (pjFrame % 2 === 0) ? 14 : 8;
-        // 左・右エンジンから吹き出すツインプラズマ炎
-        pCtx.fillStyle = "#ff9f0a";
-        pCtx.fillRect(-16 * baseScale, 14 * baseScale, 4 * baseScale, fl * baseScale);
-        pCtx.fillRect(12 * baseScale, 14 * baseScale, 4 * baseScale, fl * baseScale);
-        pCtx.fillStyle = "#ffcc00";
-        pCtx.fillRect(-15 * baseScale, 14 * baseScale, 2 * baseScale, (fl*0.6) * baseScale);
-        pCtx.fillRect(13 * baseScale, 14 * baseScale, 2 * baseScale, (fl*0.6) * baseScale);
+        pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`;
+        pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale);
+    }
+    pCtx.restore();
+
+    // 右側ドライブポッド
+    pCtx.save();
+    pCtx.translate(32 * scale + extOffset, 0);
+    pCtx.beginPath();
+    pCtx.moveTo(0, -10 * scale);
+    pCtx.lineTo(6 * scale, -5 * scale);
+    pCtx.lineTo(6 * scale, 12 * scale);
+    pCtx.lineTo(0, 8 * scale);
+    pCtx.closePath();
+    pCtx.fill(); pCtx.stroke();
+    // ポッド内の黄色い発光スリット
+    if(isThrusting) {
+        pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`;
+        pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale);
+    }
+    pCtx.restore();
+
+    // 駆動時（ポッド展開時）の青白い後方排気エフェクト
+    if(isThrusting && podExtension > 0.8) {
+        let fl = 15 + Math.sin(pjFrame) * 4;
+        let pGrad = pCtx.createLinearGradient(0, 10 * scale, 0, (10 + fl) * scale);
+        pGrad.addColorStop(0, "rgba(0, 190, 255, 0.7)");
+        pGrad.addColorStop(1, "rgba(0, 80, 255, 0)");
+        pCtx.fillStyle = pGrad;
+        pCtx.fillRect(-37 * scale, 10 * scale, 4 * scale, fl * scale);
+        pCtx.fillRect(33 * scale, 10 * scale, 4 * scale, fl * scale);
     }
 
     pCtx.restore();
