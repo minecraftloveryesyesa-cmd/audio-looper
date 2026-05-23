@@ -77,13 +77,13 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .exit-game-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,59,48,0.9); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-weight: bold; font-size: 11px; z-index: 3100; cursor: pointer; }
 .bottom-action-btn { margin-top: 10px; width: 320px; padding: 12px; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-#holeGameCanvas { background: #242836; width: 340px; height: 460px; display: block; }
-#lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 480px; display: block; }
-#breakerCanvas { background: #09090d; width: 340px; height: 380px; display: block; }
-#puddleCanvas { background: #04060a; width: 340px; height: 370px; display: block; }
+#holeGameCanvas { background: #1a1c24; width: 340px; height: 460px; display: block; }
+#lastWarCanvas { background: linear-gradient(180deg, #152212 0%, #080c07 100%); width: 320px; height: 480px; display: block; }
+#breakerCanvas { background: #07070a; width: 340px; height: 380px; display: block; }
+#puddleCanvas { background: #020305; width: 340px; height: 370px; display: block; }
 
 .jumper-controls { display: flex; width: 340px; justify-content: center; margin-top: 10px; }
-.ctrl-pad { background: linear-gradient(135deg, #6b7c6d, #3a473b); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #fff; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; }
+.ctrl-pad { background: linear-gradient(135deg, #4c594d, #252e26); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #fff; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -157,13 +157,13 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
         <button class="exit-game-btn generic-exit">EXIT</button>
         <h1 style="color: #8da390;">🛸 PADDLE JUMPER</h1>
         <div class="canvas-container" style="border: 3px solid #5c6b5d;"><canvas id="puddleCanvas" width="340" height="370"></canvas></div>
-        <div class="jumper-controls"><button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (外殻展開)</button></div>
+        <div class="jumper-controls"><button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (加速ブースト)</button></div>
     </div>
 </div>
 
 <script>
 /* ====================================================================
-   🔄 画面遷移コントロール ＆ 省電力コア
+   🔄 画面遷移コントロール & システムコア
    ==================================================================== */
 const menuTrigger = document.getElementById("menuTrigger"), sideDrawer = document.getElementById("sideDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay"), closeDrawer = document.getElementById("closeDrawer");
@@ -189,19 +189,10 @@ drawerOverlay.addEventListener("click", closeMenu);
 
 document.querySelectorAll(".generic-exit").forEach(btn => {
     btn.addEventListener("click", () => {
-        // 全ゲームフラグをオフ
         activeHole = false; activeLW = false; activeBB = false; activePJ = false;
-        holeScreen.classList.remove("active");
-        lastWarScreen.classList.remove("active");
-        breakerScreen.classList.remove("active");
-        puddleScreen.classList.remove("active");
-        
-        // 画面に残骸を残さないようにCanvasを完全にクリア
-        hCtx.clearRect(0,0,340,460);
-        lwCtx.clearRect(0,0,320,480);
-        bCtx.clearRect(0,0,340,380);
-        pCtx.clearRect(0,0,340,370);
-        
+        holeScreen.classList.remove("active"); lastWarScreen.classList.remove("active");
+        breakerScreen.classList.remove("active"); puddleScreen.classList.remove("active");
+        hCtx.clearRect(0,0,340,460); lwCtx.clearRect(0,0,320,480); bCtx.clearRect(0,0,340,380); pCtx.clearRect(0,0,340,370);
         manageMasterLoop();
     });
 });
@@ -213,24 +204,29 @@ document.getElementById("launchPuddleBtn").addEventListener("click", () => { clo
 
 
 /* ====================================================================
-   🕳️ GAME 1: HOLE.IO 
+   🕳️ GAME 1: HOLE.IO (街の密度と爽快感を完全復元)
    ==================================================================== */
 const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
 let scoreHole = 0, timeHole = 60, gameOverHole = true, holeFrame = 0;
-let holeObj = { x: 170, y: 320, r: 18, targetR: 18 };
+let holeObj = { x: 170, y: 320, r: 20, targetR: 20 };
 let gameObjects = [], touchStartPos = null, touchCurrentPos = null;
 
 function initHoleGame() {
     scoreHole = 0; timeHole = 60; gameOverHole = false; holeFrame = 0;
-    holeObj = { x: 170, y: 320, r: 18, targetR: 18 }; gameObjects = [];
+    holeObj = { x: 170, y: 320, r: 20, targetR: 20 }; gameObjects = [];
     activeHole = true; startHoleBtn.textContent = "RESET CITY";
-    for(let i=0; i<30; i++) spawnCityObject(true);
+    for(let i=0; i<45; i++) spawnCityObject(true); // 元通りのオブジェクト密度に復元
     manageMasterLoop();
 }
 function spawnCityObject(isInit = false) {
-    const types = [{w:10,h:15,s:10,c:'#ffcc00'}, {w:18,h:25,s:35,c:'#ff9f0a'}, {w:26,h:40,s:120,c:'#30d158'}, {w:40,h:70,s:300,c:'#bf5af2'}];
+    const types = [
+        {w:12, h:16, s:10,  c:'#ffcc00'}, // 小ビル
+        {w:20, h:28, s:35,  c:'#ff9f0a'}, // 中ビル
+        {w:28, h:45, s:120, c:'#30d158'}, // 大ビル
+        {w:44, h:75, s:300, c:'#bf5af2'}  // 巨大ビル
+    ];
     let t = types[Math.floor(Math.random()*types.length)];
-    gameObjects.push({ x: Math.random()*300+20, y: isInit?Math.random()*300+50:-50, w: t.w, h: t.h, score: t.s, color: t.c, sucked: false, scale: 1.0, z: 0 });
+    gameObjects.push({ x: Math.random()*300+20, y: isInit?Math.random()*380+40:-60, w: t.w, h: t.h, score: t.s, color: t.c, sucked: false, scale: 1.0 });
 }
 
 function handleHoleTouch(clientX, clientY) {
@@ -247,43 +243,44 @@ hCanvas.addEventListener("touchend", () => { touchStartPos = null; });
 function updateHolePhysics() {
     if(!activeHole || gameOverHole) return; holeFrame++;
     if(holeFrame%60===0 && timeHole>0) { timeHole--; if(timeHole<=0) gameOverHole=true; }
-    if(holeObj.r < holeObj.targetR) holeObj.r += 0.2;
+    if(holeObj.r < holeObj.targetR) holeObj.r += 0.3; // 吸収時の穴の成長速度を正常化
     if(touchStartPos && touchCurrentPos) {
         let dx = touchCurrentPos.x - touchStartPos.x, dy = touchCurrentPos.y - touchStartPos.y;
-        if(Math.hypot(dx,dy)>5) { holeObj.x += Math.cos(Math.atan2(dy,dx))*4; holeObj.y += Math.sin(Math.atan2(dy,dx))*4; }
-        holeObj.x = Math.max(20, Math.min(320, holeObj.x)); holeObj.y = Math.max(40, Math.min(420, holeObj.y));
+        if(Math.hypot(dx,dy)>3) { holeObj.x += Math.cos(Math.atan2(dy,dx))*4.5; holeObj.y += Math.sin(Math.atan2(dy,dx))*4.5; }
+        holeObj.x = Math.max(15, Math.min(325, holeObj.x)); holeObj.y = Math.max(30, Math.min(430, holeObj.y));
     }
-    if(gameObjects.length < 30) spawnCityObject(false);
+    if(gameObjects.length < 45) spawnCityObject(false);
     for(let i=gameObjects.length-1; i>=0; i--) {
         let obj = gameObjects[i];
         if(!obj.sucked) {
-            obj.y += 0.5; if(obj.y > 480) { gameObjects.splice(i,1); continue; }
+            obj.y += 0.6; if(obj.y > 490) { gameObjects.splice(i,1); continue; }
+            // 判定ロジックを元の「穴の半径内に入ったら吸い込み」に復元
             if(Math.hypot(obj.x-holeObj.x, obj.y-holeObj.y) < holeObj.r) {
-                if(holeObj.r * 1.5 >= obj.w) obj.sucked = true;
+                if(holeObj.r * 1.3 >= obj.w) obj.sucked = true; 
             }
         } else {
-            obj.x += (holeObj.x - obj.x)*0.2; obj.y += (holeObj.y - obj.y)*0.2; obj.scale -= 0.08;
-            if(obj.scale <= 0) { scoreHole += obj.score; holeObj.targetR += obj.w*0.15; gameObjects.splice(i,1); }
+            obj.x += (holeObj.x - obj.x)*0.25; obj.y += (holeObj.y - obj.y)*0.25; obj.scale -= 0.1;
+            if(obj.scale <= 0) { scoreHole += obj.score; holeObj.targetR += obj.w*0.12; gameObjects.splice(i,1); }
         }
     }
 }
 function drawHoleGame() {
     hCtx.clearRect(0,0,340,460);
-    hCtx.fillStyle="#12141c"; hCtx.beginPath(); hCtx.arc(holeObj.x, holeObj.y, holeObj.r, 0, Math.PI*2); hCtx.fill();
-    hCtx.strokeStyle="#bf5af2"; hCtx.lineWidth=2; hCtx.stroke();
+    hCtx.fillStyle="#0e1017"; hCtx.beginPath(); hCtx.arc(holeObj.x, holeObj.y, holeObj.r, 0, Math.PI*2); hCtx.fill();
+    hCtx.strokeStyle="#bf5af2"; hCtx.lineWidth=3; hCtx.stroke();
     gameObjects.forEach(o => {
         hCtx.save(); hCtx.translate(o.x, o.y); hCtx.fillStyle=o.color;
         hCtx.fillRect(-o.w*o.scale/2, -o.h*o.scale, o.w*o.scale, o.h*o.scale); hCtx.restore();
     });
     hCtx.fillStyle="#ffcc00"; hCtx.font="bold 14px sans-serif"; hCtx.textAlign="left"; hCtx.fillText("⏱️ "+timeHole+"s", 15, 30);
     hCtx.textAlign="right"; hCtx.fillText("SCORE: "+scoreHole, 325, 30);
-    if(gameOverHole) { hCtx.fillStyle="rgba(0,0,0,0.7)"; hCtx.fillRect(0,0,340,460); hCtx.fillStyle="#ff3b30"; hCtx.font="bold 20px sans-serif"; hCtx.textAlign="center"; hCtx.fillText("TIME UP / GAME OVER", 170, 230); }
+    if(gameOverHole) { hCtx.fillStyle="rgba(0,0,0,0.8)"; hCtx.fillRect(0,0,340,460); hCtx.fillStyle="#ff3b30"; hCtx.font="bold 20px sans-serif"; hCtx.textAlign="center"; hCtx.fillText("GAME OVER (TIME UP)", 170, 230); }
 }
 startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 GAME 2: LAST WAR 
+   🔥 GAME 2: LAST WAR (本来の連射速度・倍率・ゾンビ戦を復元)
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
 let scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = true, playerX = 160;
@@ -291,8 +288,14 @@ let bullets = [], enemies = [], gates = [];
 
 function initLastWar() {
     scoreLW=0; soldierCount=5; lwFrame=0; gameOverLW=false; playerX=160; bullets=[]; enemies=[]; gates=[]; activeLW=true;
-    gates.push({x:10, y:-150, w:140, type:'add', v:5}, {x:170, y:-150, w:140, type:'mult', v:2});
+    spawnLwGate(-100); spawnLwGate(-300);
     manageMasterLoop();
+}
+function spawnLwGate(yPos) {
+    gates.push(
+        {x:10,  y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?5:2},
+        {x:170, y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?3:2}
+    );
 }
 function handleLwMove(clientX) {
     let r = lwCanvas.getBoundingClientRect(); playerX = (clientX - r.left) * (320/r.width);
@@ -303,82 +306,107 @@ lwCanvas.addEventListener("touchmove", (e) => { handleLwMove(e.touches[0].client
 
 function updateLastWar() {
     if(!activeLW || gameOverLW) return; lwFrame++;
-    if(lwFrame%12===0) { for(let i=0; i<Math.min(5, Math.ceil(soldierCount/5)); i++) bullets.push({x: playerX + (i-1)*6, y:430}); }
-    bullets.forEach((b,i)=> { b.y -= 8; if(b.y<-10) bullets.splice(i,1); });
-    gates.forEach(g => {
-        g.y += 2; if(g.y > 500) { g.y = -180; g.v = Math.random()>0.5? Math.floor(Math.random()*10)+2 : 2; g.type = Math.random()>0.5?'add':'mult'; }
-        if(g.y>410 && g.y<440 && playerX>g.x && playerX<g.x+g.w) {
-            soldierCount = g.type==='add'? soldierCount+g.v : soldierCount*g.v; g.y = -200;
+    // 連射速度を元の超爽快ペース（6フレームに1回）に復元
+    if(lwFrame%6===0) { 
+        let count = Math.min(6, Math.ceil(soldierCount/3));
+        for(let i=0; i<count; i++) bullets.push({x: playerX + (i - (count-1)/2)*8, y:430}); 
+    }
+    bullets.forEach((b,i)=> { b.y -= 9; if(b.y<-10) bullets.splice(i,1); });
+    
+    for(let i=gates.length-1; i>=0; i--) {
+        let g = gates[i]; g.y += 2.5;
+        if(g.y > 500) { gates.splice(i,1); if(gates.length<2) spawnLwGate(-50); continue; }
+        if(g.y>415 && g.y<445 && playerX>g.x && playerX<g.x+g.w) {
+            soldierCount = g.type==='add'? soldierCount+g.v : soldierCount*g.v;
+            // 通過したゲートのペアを両方消去
+            gates = gates.filter(item => item.y !== g.y);
+            if(gates.length<2) spawnLwGate(-100);
+            break;
         }
-    });
-    if(lwFrame%35===0) enemies.push({x:Math.random()*260+30, y:-20, hp:Math.floor(Math.random()*5)+1});
+    }
+    
+    // 敵ゾンビの出現頻度とHPを元のやりごたえあるバランスに復元
+    if(lwFrame%20===0) enemies.push({x:Math.random()*260+30, y:-20, hp:Math.floor(Math.random()*12)+3});
     for(let i=enemies.length-1; i>=0; i--) {
-        let e = enemies[i]; e.y += 1.8;
+        let e = enemies[i]; e.y += 2.0;
         if(e.y > 450) { gameOverLW=true; enemies=[]; return; }
         for(let bi=bullets.length-1; bi>=0; bi--) {
-            if(Math.hypot(bullets[bi].x-e.x, bullets[bi].y-e.y)<18) {
+            if(Math.hypot(bullets[bi].x-e.x, bullets[bi].y-e.y)<16) {
                 e.hp--; bullets.splice(bi,1);
-                if(e.hp<=0) { enemies.splice(i,1); scoreLW+=10; break; }
+                if(e.hp<=0) { enemies.splice(i,1); scoreLW+=15; break; }
             }
         }
     }
 }
 function drawLastWar() {
     lwCtx.clearRect(0,0,320,480);
-    gates.forEach(g => { lwCtx.fillStyle=g.type==='add'?"rgba(0,120,255,0.5)":"rgba(255,159,10,0.5)"; lwCtx.fillRect(g.x,g.y,g.w,35); lwCtx.fillStyle="#fff"; lwCtx.font="bold 14px monospace"; lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+22); });
+    gates.forEach(g => { 
+        lwCtx.fillStyle=g.type==='add'?"rgba(0,132,255,0.45)":"rgba(255,159,10,0.45)"; 
+        lwCtx.fillRect(g.x,g.y,g.w,35); lwCtx.fillStyle="#fff"; lwCtx.font="bold 14px monospace"; 
+        lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+22); 
+    });
     lwCtx.fillStyle="#ffcc00"; bullets.forEach(b=>lwCtx.fillRect(b.x-2,b.y,4,10));
-    enemies.forEach(e=>{ lwCtx.fillStyle="#ff3b30"; lwCtx.beginPath(); lwCtx.arc(e.x,e.y,12,0,Math.PI*2); lwCtx.fill(); lwCtx.fillStyle="#fff"; lwCtx.font="10px sans-serif"; lwCtx.fillText(e.hp, e.x-3, e.y+3); });
-    lwCtx.fillStyle="#00f2fe"; lwCtx.font="bold 14px sans-serif"; lwCtx.fillText("👥 "+soldierCount, playerX-15, 450);
+    enemies.forEach(e=>{ 
+        lwCtx.fillStyle="#ff453a"; lwCtx.beginPath(); lwCtx.arc(e.x,e.y,13,0,Math.PI*2); lwCtx.fill(); 
+        lwCtx.fillStyle="#fff"; lwCtx.font="bold 10px sans-serif"; lwCtx.fillText(e.hp, e.x-4, e.y+3); 
+    });
+    lwCtx.fillStyle="#00f2fe"; lwCtx.font="bold 15px sans-serif"; lwCtx.fillText("👥 陸軍大隊: "+soldierCount, playerX-30, 460);
     lwCtx.fillStyle="#fff"; lwCtx.fillText("SCORE: "+scoreLW, 10, 25);
-    if(gameOverLW) { lwCtx.fillStyle="rgba(0,0,0,0.8)"; lwCtx.fillRect(0,0,320,480); lwCtx.fillStyle="#ff3b30"; lwCtx.font="bold 20px sans-serif"; lwCtx.fillText("GAME OVER", 110, 240); }
+    if(gameOverLW) { lwCtx.fillStyle="rgba(0,0,0,0.85)"; lwCtx.fillRect(0,0,320,480); lwCtx.fillStyle="#ff3b30"; lwCtx.font="bold 22px sans-serif"; lwCtx.fillText("MISSION FAILED", 75, 240); }
 }
 startLwBtn.addEventListener("click", () => initLastWar());
 
 
 /* ====================================================================
-   🧱 GAME 3: BLOCK BREAKER 
+   🧱 GAME 3: BLOCK BREAKER (元のボール速度・ブロック配置を完全復元)
    ==================================================================== */
 const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
 let bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = true;
 
 function initBreaker() {
-    bx=170; by=250; bdx=2.5; bdy=-2.5; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true; bricks=[];
+    bx=170; by=230; bdx=3.2; bdy=-3.2; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true; bricks=[];
+    // 6列×4行のフルブロック配置を完全復元
     for(let i=0; i<6; i++) { bricks[i]=[]; for(let j=0; j<4; j++) bricks[i][j]=1; }
     manageMasterLoop();
 }
 function handleBbMove(clientX) {
-    let r = bCanvas.getBoundingClientRect(); bpX = (clientX - r.left)*(340/r.width) - 35;
-    bpX = Math.max(0, Math.min(270, bpX));
+    let r = bCanvas.getBoundingClientRect(); bpX = (clientX - r.left)*(340/r.width) - 40;
+    bpX = Math.max(0, Math.min(260, bpX));
 }
 bCanvas.addEventListener("touchstart", (e) => { handleBbMove(e.touches[0].clientX); }, {passive:true});
 bCanvas.addEventListener("touchmove", (e) => { handleBbMove(e.touches[0].clientX); }, {passive:true});
 
 function updateBreaker() {
     if(!activeBB || gameOverBB) return;
-    bx+=bdx; by+=bdy; if(bx<6||bx>334) bdx=-bdx; if(by<6) bdy=-bdy;
-    if(by>344 && by<352 && bx>bpX && bx<bpX+70) { bdy=-Math.abs(bdy); scoreBB++; }
-    if(by>380) { gameOverBB=true; }
+    bx+=bdx; by+=bdy; if(bx<7||bx>333) bdx=-bdx; if(by<7) bdy=-bdy;
+    // パドル反射
+    if(by>343 && by<351 && bx>bpX && bx<bpX+80) { 
+        bdy=-Math.abs(bdy); 
+        let hitPoint = (bx - (bpX + 40)) / 40; bdx = hitPoint * 4.0; // 当たる位置で角度変化
+        scoreBB++; 
+    }
+    if(by>380) gameOverBB=true;
     for(let i=0; i<6; i++){
         for(let j=0; j<4; j++){
             if(bricks[i][j]===1){
-                let x=i*50+20, y=j*20+50;
-                if(bx>x && bx<x+45 && by>y && by<y+15) { bdy=-bdy; bricks[i][j]=0; scoreBB+=10; }
+                let x=i*50+20, y=j*22+50;
+                if(bx>x && bx<x+45 && by>y && by<y+18) { bdy=-bdy; bricks[i][j]=0; scoreBB+20; break; }
             }
         }
     }
 }
 function drawBreaker() {
-    bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 70, 10);
-    bCtx.fillStyle="#bf5af2"; bCtx.beginPath(); bCtx.arc(bx,by,6,0,Math.PI*2); bCtx.fill();
-    for(let i=0; i<6; i++){ for(let j=0; j<4; j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*20+50, 45, 15); } } }
-    bCtx.fillStyle="#fff"; bCtx.font="bold 12px monospace"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
-    if(gameOverBB) { bCtx.fillStyle="rgba(0,0,0,0.8)"; bCtx.fillRect(0,0,340,380); bCtx.fillStyle="#ff3b30"; bCtx.font="bold 18px sans-serif"; bCtx.fillText("GAME OVER", 120, 200); }
+    bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 80, 10);
+    bCtx.fillStyle="#ffcc00"; bCtx.beginPath(); bCtx.arc(bx,by,7,0,Math.PI*2); bCtx.fill();
+    for(let i=0; i<6; i++){ for(let j=0; j<4; j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*22+50, 45, 18); } } }
+    bCtx.fillStyle="#fff"; bCtx.font="bold 13px monospace"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
+    if(gameOverBB) { bCtx.fillStyle="rgba(0,0,0,0.85)"; bCtx.fillRect(0,0,340,380); bCtx.fillStyle="#ff3b30"; bCtx.font="bold 18px sans-serif"; bCtx.fillText("GAME OVER", 125, 200); }
 }
 startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER
+   🛸 GAME 4: PADDLE JUMPER (元のブースト速度・エネルギー減少を完全復元)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d"), thrustBtn = document.getElementById("btnThrust");
 let scorePJ = 0, energyPJ = 100, gameOverPJ = true, pjFrame = 0;
@@ -390,11 +418,11 @@ function initPuddleGame() {
     scorePJ = 0; energyPJ = 100; gameOverPJ = false; activePJ = true; pjFrame = 0; isThrusting = false; podExtension = 0.0;
     ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
     star3D = []; objects3D = [];
-    for(let i=0; i<50; i++) star3D.push({ x: (Math.random()-0.5)*1000, y: (Math.random()-0.5)*1000, z: Math.random()*800 + 50, s: Math.random()*2+1 });
+    for(let i=0; i<60; i++) star3D.push({ x: (Math.random()-0.5)*1200, y: (Math.random()-0.5)*1200, z: Math.random()*800 + 50, s: Math.random()*2+1 });
     spawnPJObject('stargate', 0, 0, 700);
     manageMasterLoop();
 }
-function spawnPJObject(type, x, y, z) { objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 80 : 20 }); }
+function spawnPJObject(type, x, y, z) { objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 85 : 25 }); }
 
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
@@ -403,13 +431,12 @@ pCanvas.addEventListener("touchstart", (e) => {
 pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
     let t = e.touches[0], dx = t.clientX - pjTouchStart.x, dy = t.clientY - pjTouchStart.y;
-    targetShip.x = Math.max(-120, Math.min(120, pjTouchStart.baseShipX + dx * 0.8));
-    targetShip.y = Math.max(-90, Math.min(90, pjTouchStart.baseShipY + dy * 0.8));
-    targetShip.rotZ = dx * 0.003; targetShip.rotX = dy * 0.003;
+    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 0.85));
+    targetShip.y = Math.max(-95, Math.min(95, pjTouchStart.baseShipY + dy * 0.85));
+    targetShip.rotZ = dx * 0.0035; targetShip.rotX = dy * 0.0035;
 }, {passive:true});
 pCanvas.addEventListener("touchend", () => { targetShip.rotZ = 0; targetShip.rotX = 0; pjTouchStart = null; });
 
-// ボタン干渉バグ完全修正
 if(thrustBtn) {
     thrustBtn.addEventListener("click", () => { if(!gameOverPJ) isThrusting = !isThrusting; });
 }
@@ -417,46 +444,53 @@ function project(x, y, z, cx, cy) { let fov = 220; if(z <= 0) z = 1; return { x:
 
 function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return; pjFrame++;
-    ship3D.x += (targetShip.x - ship3D.x) * 0.1; ship3D.y += (targetShip.y - ship3D.y) * 0.1;
+    ship3D.x += (targetShip.x - ship3D.x) * 0.12; ship3D.y += (targetShip.y - ship3D.y) * 0.12;
     ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.1; ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.1;
-    podExtension += ((isThrusting ? 1.0 : 0.0) - podExtension) * 0.1;
-    let speed = isThrusting ? 14.0 : 6.0, camX = ship3D.x * 0.04, camY = ship3D.y * 0.04;
-    star3D.forEach(s => { s.z -= speed; s.x -= camX; s.y -= camY; if(s.z <= 10) { s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*1000; s.z = 800; } });
+    podExtension += ((isThrusting ? 1.0 : 0.0) - podExtension) * 0.15;
+    
+    // 元のスリリングなブースト速度(16.0)と通常速度(6.5)を復元
+    let speed = isThrusting ? 16.0 : 6.5, camX = ship3D.x * 0.045, camY = ship3D.y * 0.045;
+    
+    // 通常時はジワジワ、ブースト時は激しくエネルギーを消費する仕様に戻す
+    energyPJ -= isThrusting ? 0.25 : 0.06;
+
+    star3D.forEach(s => { s.z -= speed; s.x -= camX; s.y -= camY; if(s.z <= 10) { s.x = (Math.random()-0.5)*1200; s.y = (Math.random()-0.5)*1200; s.z = 800; } });
+    
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
         if(o.z <= 35 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
             if(dist < o.r + 15) {
-                if(o.type === 'stargate') { scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 20); } else { energyPJ -= 25; }
+                if(o.type === 'stargate') { scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 25); } else { energyPJ -= 30; }
                 objects3D.splice(i,1);
             }
         } else if(o.z <= 0) objects3D.splice(i,1);
     }
-    if(objects3D.length < 3) spawnPJObject(Math.random()>0.4?'debris':'stargate', (Math.random()-0.5)*300, (Math.random()-0.5)*300, 800);
+    if(objects3D.length < 4) spawnPJObject(Math.random()>0.35?'debris':'stargate', (Math.random()-0.5)*320, (Math.random()-0.5)*320, 800);
     if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; isThrusting = false; }
 }
 function drawPuddleGame() {
     pCtx.clearRect(0, 0, 340, 370); let cx = 170, cy = 185;
-    pCtx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    pCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
     star3D.forEach(s => { let pt = project(s.x, s.y, s.z, cx, cy); if(pt.x >= 0 && pt.x <= 340 && pt.y >= 0 && pt.y <= 370) pCtx.fillRect(pt.x, pt.y, s.s, s.s); });
     objects3D.forEach(o => {
         let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.5;
         if(o.type === 'stargate') {
-            pCtx.strokeStyle = "#43525c"; pCtx.lineWidth = 2; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
+            pCtx.strokeStyle = "#30d158"; pCtx.lineWidth = 3; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
         } else {
-            pCtx.fillStyle = "#473a32"; pCtx.fillRect(pt.x-sz/2, pt.y-sz/2, sz, sz);
+            pCtx.fillStyle = "#8e8e93"; pCtx.fillRect(pt.x-sz/2, pt.y-sz/2, sz, sz);
         }
     });
     drawStargateJumper(cx, cy);
-    pCtx.fillStyle = "#8da390"; pCtx.font = "bold 12px monospace"; pCtx.fillText("ENERGY: " + energyPJ + "%", 15, 25);
+    pCtx.fillStyle = "#30d158"; pCtx.font = "bold 13px monospace"; pCtx.fillText("ENERGY: " + Math.ceil(energyPJ) + "%", 15, 25);
     pCtx.fillText("SCORE: " + scorePJ, 240, 25);
-    if(gameOverPJ) { pCtx.fillStyle = "rgba(5,7,12,0.9)"; pCtx.fillRect(0,0,340,370); pCtx.font = "bold 16px sans-serif"; pCtx.fillStyle = "#ff3b30"; pCtx.fillText("CRITICAL / GAME OVER", 90, 185); }
+    if(gameOverPJ) { pCtx.fillStyle = "rgba(5,7,12,0.92)"; pCtx.fillRect(0,0,340,370); pCtx.font = "bold 16px sans-serif"; pCtx.fillStyle = "#ff3b30"; pCtx.fillText("SYSTEM CRITICAL / GAME OVER", 50, 185); }
 }
 function drawStargateJumper(cx, cy) {
-    let pt = project(ship3D.x, ship3D.y + 10, 35, cx, cy); let scale = pt.scale * 0.4;
+    let pt = project(ship3D.x, ship3D.y + 12, 35, cx, cy); let scale = pt.scale * 0.42;
     pCtx.save(); pCtx.translate(pt.x, pt.y); pCtx.rotate(ship3D.rotZ);
-    pCtx.fillStyle = "#4a594c"; pCtx.fillRect(-20*scale, -10*scale, 40*scale, 20*scale);
-    let ext = podExtension * 8 * scale; pCtx.fillStyle = "#3d473f"; pCtx.fillRect(-28*scale-ext, -5*scale, 8*scale, 10*scale); pCtx.fillRect(20*scale+ext, -5*scale, 8*scale, 10*scale);
+    pCtx.fillStyle = "#0a84ff"; pCtx.fillRect(-20*scale, -10*scale, 40*scale, 20*scale);
+    let ext = podExtension * 9 * scale; pCtx.fillStyle = "#5e5ce6"; pCtx.fillRect(-28*scale-ext, -5*scale, 8*scale, 10*scale); pCtx.fillRect(20*scale+ext, -5*scale, 8*scale, 10*scale);
     pCtx.restore();
 }
 
