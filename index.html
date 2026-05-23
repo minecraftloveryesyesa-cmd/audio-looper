@@ -78,7 +78,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .bottom-action-btn { margin-top: 10px; width: 320px; padding: 12px; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; font-weight: bold; cursor: pointer; }
 
 #holeGameCanvas { background: #1a1c24; width: 340px; height: 460px; display: block; }
-#lastWarCanvas { background: #9fa8a3; width: 320px; height: 480px; display: block; } /* 背景をアスファルト風グレーに変更 */
+#lastWarCanvas { background: #8a948f; width: 320px; height: 480px; display: block; }
 #breakerCanvas { background: #07070a; width: 340px; height: 380px; display: block; }
 #puddleCanvas { background: #020305; width: 340px; height: 370px; display: block; }
 
@@ -202,7 +202,7 @@ let gameObjects = [], touchStartPos = null, touchCurrentPos = null;
 
 function initHoleGame() {
     scoreHole = 0; timeHole = 60; gameOverHole = false; holeFrame = 0;
-    holeObj = { x: 170, y: 320, r: 20, targetR: 20 }; gameObjects = [];
+    textHole = ""; holeObj = { x: 170, y: 320, r: 20, targetR: 20 }; gameObjects = [];
     activeHole = true; startHoleBtn.textContent = "RESET CITY";
     for(let i=0; i<45; i++) spawnCityObject(true);
     requestAnimationFrame(holeLoop);
@@ -272,7 +272,7 @@ startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 GAME 2: LAST WAR (画像再現・超物量ハクスラ仕様)
+   🔥 GAME 2: LAST WAR (左右レーン完全分離＆敵画面外ガード版)
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
 let scoreLW = 0, soldierCount = 10, lwFrame = 0, gameOverLW = true, playerX = 160;
@@ -285,10 +285,10 @@ function initLastWar() {
 }
 
 function spawnLwGate(yPos) {
-    // 右側の壁に寄った青い大量追加ゲートのビジュアル再現
+    // 🛠️ 修正：味方が増えるゲートを左側（安全地帯）に、右側をゾンビ迎撃用のゲートに完全に分離配置
     gates.push(
-        {x:10,  y:yPos, w:130, type:'add', v:Math.random()>0.5?15:5, active:true},
-        {x:160, y:yPos, w:150, type:'add', v:Math.random()>0.5?30:10, active:true} // 青い高倍率ゲートを右側に配置
+        {x:10,  y:yPos, w:130, type:'add', v:Math.floor(Math.random()*15)+10, active:true, color:'rgba(0, 198, 255, 0.85)'},  // 左側：純粋な味方増強エリア
+        {x:160, y:yPos, w:150, type:'add', v:Math.floor(Math.random()*25)+15, active:true, color:'rgba(0, 110, 255, 0.75)'}   // 右側：ゾンビ進軍ルート上のゲート
     );
 }
 
@@ -304,10 +304,10 @@ function lastWarLoop() {
     if (!gameOverLW) {
         lwFrame++;
 
-        // 🚀 画像再現：兵士の密集度に合わせて金色のストリーク弾丸をガガガガッと超高速一斉連射
+        // 金色のストリーク弾丸を超高速一斉連射
         if(lwFrame % 3 === 0) { 
-            let columns = Math.min(10, Math.ceil(soldierCount / 3)); // 横幅の弾幕数
-            let density = soldierCount > 25 ? 2 : 1; // 兵士が多いと2重連射
+            let columns = Math.min(10, Math.ceil(soldierCount / 3)); 
+            let density = soldierCount > 25 ? 2 : 1; 
             for(let d=0; d<density; d++) {
                 for(let i=0; i<columns; i++) {
                     let spreadX = playerX + (i - (columns-1)/2) * 6 + (Math.random() - 0.5) * 4;
@@ -315,7 +315,6 @@ function lastWarLoop() {
                 }
             }
         }
-        // 金色の縦長ラインレーザー弾の移動
         bullets.forEach((b,i)=> { b.y -= 14; if(b.y<-20) bullets.splice(i,1); });
         
         // ゲート通過処理
@@ -330,39 +329,42 @@ function lastWarLoop() {
         }
         if(gates.length > 0 && gates[0].y > 500) { gates.splice(0,2); spawnLwGate(-120); }
         
-        // 🧟 画像再現：赤い帽子の敵ゾンビが「超高密度な塊」のウェーブで画面上部を埋め尽くすように出現
+        // 🧟 修正：ゾンビは右側の来襲ルートをメインとしつつ、高密度ウェーブで出現
         if(lwFrame % 12 === 0) {
-            let waveSize = Math.floor(Math.random() * 6) + 8; // 一度に8〜14体まとめて出現
+            let waveSize = Math.floor(Math.random() * 6) + 8; 
             for(let w=0; w<waveSize; w++) {
                 enemies.push({
-                    x: Math.random() * 280 + 20, 
+                    // 主に右半分(150〜300)から湧くようにしつつ、左へのハみ出しを防ぐ
+                    x: Math.random() * 150 + 150, 
                     y: -20 - (Math.random() * 30), 
                     hp: Math.floor(Math.random() * 4) + 2,
-                    offsetX: (Math.random() - 0.5) * 0.4
+                    offsetX: (Math.random() - 0.5) * 0.6
                 });
             }
         }
 
-        // 敵の進行と当たり判定（ノックバック＆爆発エフェクト）
+        // 敵の進行と当たり判定（画面外へのはみ出しを完全ガード！）
         for(let i=enemies.length-1; i>=0; i--) {
             let e = enemies[i]; 
-            e.y += 1.4; e.x += e.offsetX; // じわじわと密集しながら進軍
+            e.y += 1.4; e.x += e.offsetX; 
+            
+            // 🛡️ 画面外ガード処理：敵のX座標がキャンバス外（左右）にいかないように固定
+            if(e.x < 15) { e.x = 15; e.offsetX = -e.offsetX; }
+            if(e.x > 305) { e.x = 305; e.offsetX = -e.offsetX; }
             
             if(e.y > 430) { gameOverLW=true; enemies=[]; return; }
             
             for(let bi=bullets.length-1; bi>=0; bi--) {
                 if(Math.abs(bullets[bi].x - e.x) < 14 && Math.abs(bullets[bi].y - e.y) < 16) {
                     e.hp--; 
-                    e.y -= 1.5; // 💥 弾が当たると微ノックバック
+                    e.y -= 1.5; // 微ノックバック
                     bullets.splice(bi,1);
                     
-                    // 💥 画像再現：ヒット時の黄色いフラッシュ・爆発粒子を生成
                     if(Math.random() > 0.3) {
                         particles.push({x: e.x, y: e.y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, size: Math.random()*5+3, alpha: 1.0});
                     }
                     
                     if(e.hp<=0) { 
-                        // 盛大な撃破爆発
                         for(let p=0; p<6; p++) {
                             particles.push({x: e.x, y: e.y, vx: (Math.random()-0.5)*7, vy: (Math.random()-0.5)*7, size: Math.random()*6+4, alpha: 1.0});
                         }
@@ -372,7 +374,6 @@ function lastWarLoop() {
             }
         }
 
-        // パーティクルアニメーション
         particles.forEach((p, index) => {
             p.x += p.vx; p.y += p.vy; p.alpha -= 0.08;
             if(p.alpha <= 0) particles.splice(index, 1);
@@ -381,60 +382,54 @@ function lastWarLoop() {
     
     // 背景描写
     lwCtx.fillStyle = "#8a948f"; lwCtx.fillRect(0,0,320,480);
-    // ガードレール線（画像の右側フェンス風）
+    // 右側の警戒ガードレールフェンス
     lwCtx.strokeStyle = "#bcbcbc"; lwCtx.lineWidth = 4; lwCtx.beginPath(); lwCtx.moveTo(310, 0); lwCtx.lineTo(310, 480); lwCtx.stroke();
+    // 左右レーンの境界線（センター白破線）
+    lwCtx.strokeStyle = "rgba(255,255,255,0.3)"; lwCtx.lineWidth = 2; lwCtx.setLineDash([10, 10]);
+    lwCtx.beginPath(); lwCtx.moveTo(150, 0); lwCtx.lineTo(150, 480); lwCtx.stroke(); lwCtx.setLineDash([]);
 
-    // 🟦 青い「＋数字」の計算ゲート（画像右側のレイアウト風に美化）
+    // 各種ゲートの描写
     gates.forEach(g => { 
         if(!g.active) return;
-        lwCtx.fillStyle = "rgba(0, 110, 255, 0.75)"; 
+        lwCtx.fillStyle = g.color; 
         lwCtx.fillRect(g.x, g.y, g.w, 32); 
         lwCtx.strokeStyle = "#ffffff"; lwCtx.lineWidth = 1.5; lwCtx.strokeRect(g.x, g.y, g.w, 32);
         lwCtx.fillStyle="#fff"; lwCtx.font="bold 15px sans-serif"; 
         lwCtx.fillText("+ " + g.v, g.x + g.w/2 - 12, g.y + 22); 
     });
 
-    // 🚀 画像再現：金色のレーザー風の超高速縦長弾丸
+    // 金色の高速縦長ライン弾丸
     lwCtx.fillStyle = "#ffdf00";
     bullets.forEach(b => {
-        lwCtx.fillStyle = "#ffea70"; lwCtx.fillRect(b.x - 1.5, b.y, 3, 14); // 芯の白い光
+        lwCtx.fillStyle = "#ffea70"; lwCtx.fillRect(b.x - 1.5, b.y, 3, 14); 
         lwCtx.fillStyle = "#ffaa00"; lwCtx.fillRect(b.x - 2.5, b.y + 4, 5, 8);
     });
 
-    // 💥 爆発ヒットエフェクトの描画
+    // 爆発ヒットパーティクル
     particles.forEach(p => {
         lwCtx.fillStyle = `rgba(255, ${Math.floor(150 + Math.random()*105)}, 0, ${p.alpha})`;
         lwCtx.beginPath(); lwCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); lwCtx.fill();
     });
 
-    // 🧟 画像再現：赤いヘルメット・服を着た超高密度な敵の大群
+    // 赤い服・ヘルメットを被ったゾンビの大群
     enemies.forEach(e=>{ 
-        // 体体（赤）
         lwCtx.fillStyle = "#a62424"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y + 4, 11, 0, Math.PI*2); lwCtx.fill(); 
-        // ヘルメット（明るい赤）
         lwCtx.fillStyle = "#e63946"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y, 10, 0, Math.PI*2); lwCtx.fill(); 
-        // つば部分
         lwCtx.fillRect(e.x - 11, e.y, 22, 2);
     });
 
-    // 👥 画像再現：密集する青いヘルメットの自軍兵士集団
-    let sCount = Math.min(30, soldierCount); // 描写上限
+    // 青いヘルメットの自軍密集大隊
+    let sCount = Math.min(30, soldierCount); 
     for(let s=0; s<sCount; s++) {
-        let row = Math.floor(s / 6);
-        let col = s % 6;
-        let sx = playerX + (col - 2.5) * 9 + (row % 2 * 4);
-        let sy = 440 + row * 8;
-        
-        // 体（白・ベージュ）
+        let row = Math.floor(s / 6); let col = s % 6;
+        let sx = playerX + (col - 2.5) * 9 + (row % 2 * 4); let sy = 440 + row * 8;
         lwCtx.fillStyle = "#e5cbb3"; lwCtx.fillRect(sx - 5, sy, 10, 10);
-        // ズボン（青）
         lwCtx.fillStyle = "#1d3557"; lwCtx.fillRect(sx - 5, sy + 6, 10, 4);
-        // 青いヘルメット（丸型）
         lwCtx.fillStyle = "#4ea8de"; lwCtx.beginPath(); lwCtx.arc(sx, sy, 7, 0, Math.PI*2); lwCtx.fill();
         lwCtx.fillStyle = "#0077b6"; lwCtx.beginPath(); lwCtx.arc(sx, sy - 1, 6, 0, Math.PI*2); lwCtx.fill();
     }
 
-    // UI情報
+    // UIオーバーレイ
     lwCtx.fillStyle = "#1d3557"; lwCtx.font = "bold 13px sans-serif";
     lwCtx.fillText("👥 自軍戦力: " + soldierCount, 15, 470);
     lwCtx.fillStyle = "#000"; lwCtx.font = "bold 15px monospace"; lwCtx.fillText("SCORE: " + scoreLW, 15, 25);
