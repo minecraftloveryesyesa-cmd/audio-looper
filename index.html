@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AL&G - Loop Player & Arcade Premium</title>
+<title>AL&G - Loop Player & Arcade Edition</title>
 
 <style>
 body {
@@ -40,7 +40,7 @@ body {
 .game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
 .game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); }
 .game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); }
-.game-launch-btn.puddle { background: linear-gradient(135deg, #5c6b5d, #2e3b2f); }
+.game-launch-btn.puddle { background: linear-gradient(135deg, #5c6b5d, #2e3b2f); text-shadow: 0 0 8px rgba(92,107,93,0.6); }
 
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
@@ -56,14 +56,14 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 #playBtn { width: 100%; padding: 16px; font-size: 16px; background: linear-gradient(135deg, #0a84ff, #0055d4); color: white; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; }
 .custom-player { background: #09090d; border: 1px solid #2c2c3e; border-radius: 16px; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
 .time-display { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; color: #8e8e93; }
-.seekbar-touch-zone { width: 100%; height: 20px; display: flex; align-items: center; position: relative; cursor: pointer; }
+.seekbar-touch-zone { width: 100%; height: 20px; display: flex; align-items: center; position: relative; }
 .seekbar-container { width: 100%; height: 6px; background: #1c1c24; border-radius: 3px; position: relative; }
 .seekbar-progress { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: linear-gradient(90deg, #0a84ff, #bf5af2); border-radius: 3px; }
 .seekbar-handle { position: absolute; top: 50%; left: 0%; width: 14px; height: 14px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 8px #0a84ff; }
 .status-monitor { background: #09090d; border: 1px solid #2c2c3e; border-radius: 12px; padding: 12px; }
 #status { margin: 0; color: #0a84ff; font-family: monospace; font-size: 12px; font-weight: bold; }
 
-/* 🎮 ゲームオーバーレイ */
+/* 🎮 各種ゲーム画面オーバーレイ */
 .game-overlay-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #09090d; z-index: 3000; display: none;
@@ -77,13 +77,15 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .exit-game-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,59,48,0.9); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-weight: bold; font-size: 11px; z-index: 3100; cursor: pointer; }
 .bottom-action-btn { margin-top: 10px; width: 320px; padding: 12px; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; font-weight: bold; cursor: pointer; }
 
-#holeGameCanvas { background: #1a1c24; width: 340px; height: 460px; display: block; }
-#lastWarCanvas { background: linear-gradient(180deg, #152212 0%, #080c07 100%); width: 320px; height: 480px; display: block; }
-#breakerCanvas { background: #07070a; width: 340px; height: 380px; display: block; }
-#puddleCanvas { background: #020305; width: 340px; height: 370px; display: block; }
+#holeGameCanvas { background: #242836; width: 340px; height: 460px; display: block; }
+#lastWarCanvas { background: linear-gradient(180deg, #1c2b18 0%, #0d140c 100%); width: 320px; height: 480px; display: block; }
+#breakerCanvas { background: #09090d; width: 340px; height: 380px; display: block; }
 
+/* 🛸 パドルジャンパー専用 */
+#puddleCanvas { background: #04060a; width: 340px; height: 370px; display: block; }
 .jumper-controls { display: flex; width: 340px; justify-content: center; margin-top: 10px; }
-.ctrl-pad { background: linear-gradient(135deg, #4c594d, #252e26); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #fff; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; }
+.ctrl-pad { background: linear-gradient(135deg, #6b7c6d, #3a473b); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 16px; color: #fff; font-weight: 900; font-size: 15px; width: 100%; letter-spacing: 2px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ctrl-pad:active { background: linear-gradient(135deg, #4d5a4e, #252e26); }
 </style>
 </head>
 <body>
@@ -105,7 +107,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
     <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO</button>
     <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR</button>
     <button class="game-launch-btn breaker" id="launchBreakerViewBtn">BLOCK BREAKER</button>
-    <button class="game-launch-btn puddle" id="launchPuddleBtn">🛸 PADDLE JUMPER</button>
+    <button class="game-launch-btn puddle" id="launchPuddleBtn">🛸 PADDLE JUMPER (STAGATE)</button>
 </div>
 
 <div class="main-container" id="mainContainer">
@@ -155,32 +157,29 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 <div class="game-overlay-screen" id="puddleScreen">
     <div class="game-ui-wrap">
         <button class="exit-game-btn generic-exit">EXIT</button>
-        <h1 style="color: #8da390;">🛸 PADDLE JUMPER</h1>
-        <div class="canvas-container" style="border: 3px solid #5c6b5d;"><canvas id="puddleCanvas" width="340" height="370"></canvas></div>
-        <div class="jumper-controls"><button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (加速ブースト)</button></div>
+        <h1 style="color: #8da390; text-shadow: 0 0 10px rgba(141,163,144,0.5);">🛸 PADDLE JUMPER</h1>
+        <div class="canvas-container" style="border: 3px solid #5c6b5d;">
+            <canvas id="puddleCanvas" width="340" height="370"></canvas>
+        </div>
+        <div class="jumper-controls">
+            <button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (外殻ユニット展開)</button>
+        </div>
+        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※画面をスワイプして上下左右に機体を移動・ローテーションさせます</p>
     </div>
 </div>
 
+
 <script>
-/* ====================================================================
-   🔄 画面遷移コントロール & システムコア
-   ==================================================================== */
-const menuTrigger = document.getElementById("menuTrigger"), sideDrawer = document.getElementById("sideDrawer");
-const drawerOverlay = document.getElementById("drawerOverlay"), closeDrawer = document.getElementById("closeDrawer");
-const holeScreen = document.getElementById("holeGameScreen"), lastWarScreen = document.getElementById("lastWarScreen");
-const breakerScreen = document.getElementById("breakerScreen"), puddleScreen = document.getElementById("puddleScreen");
+/* --- 画面遷移コントロール --- */
+const menuTrigger = document.getElementById("menuTrigger");
+const sideDrawer = document.getElementById("sideDrawer");
+const drawerOverlay = document.getElementById("drawerOverlay");
+const closeDrawer = document.getElementById("closeDrawer");
 
-let activeHole = false, activeLW = false, activeBB = false, activePJ = false;
-let animationFrameId = null, isPageVisible = true;
-
-function manageMasterLoop() {
-    const anyGameActive = activeHole || activeLW || activeBB || activePJ;
-    if (!isPageVisible || !anyGameActive) {
-        if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-    } else {
-        if (!animationFrameId) masterGameLoop();
-    }
-}
+const holeScreen = document.getElementById("holeGameScreen");
+const lastWarScreen = document.getElementById("lastWarScreen");
+const breakerScreen = document.getElementById("breakerScreen");
+const puddleScreen = document.getElementById("puddleScreen");
 
 menuTrigger.addEventListener("click", () => { sideDrawer.classList.add("open"); drawerOverlay.classList.add("open"); });
 const closeMenu = () => { sideDrawer.classList.remove("open"); drawerOverlay.classList.remove("open"); };
@@ -189,11 +188,10 @@ drawerOverlay.addEventListener("click", closeMenu);
 
 document.querySelectorAll(".generic-exit").forEach(btn => {
     btn.addEventListener("click", () => {
-        activeHole = false; activeLW = false; activeBB = false; activePJ = false;
-        holeScreen.classList.remove("active"); lastWarScreen.classList.remove("active");
-        breakerScreen.classList.remove("active"); puddleScreen.classList.remove("active");
-        hCtx.clearRect(0,0,340,460); lwCtx.clearRect(0,0,320,480); bCtx.clearRect(0,0,340,380); pCtx.clearRect(0,0,340,370);
-        manageMasterLoop();
+        holeScreen.classList.remove("active"); activeHole = false;
+        lastWarScreen.classList.remove("active"); activeLW = false;
+        breakerScreen.classList.remove("active"); activeBB = false;
+        puddleScreen.classList.remove("active"); activePJ = false;
     });
 });
 
@@ -204,316 +202,364 @@ document.getElementById("launchPuddleBtn").addEventListener("click", () => { clo
 
 
 /* ====================================================================
-   🕳️ GAME 1: HOLE.IO (街の密度と爽快感を完全復元)
+   🕳️ GAME 1: HOLE.IO 物理ロジック
    ==================================================================== */
 const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
-let scoreHole = 0, timeHole = 60, gameOverHole = true, holeFrame = 0;
-let holeObj = { x: 170, y: 320, r: 20, targetR: 20 };
-let gameObjects = [], touchStartPos = null, touchCurrentPos = null;
+let activeHole = false, scoreHole = 0, timeHole = 60, gameOverHole = false, holeFrame = 0;
+let holeObj = { x: 170, y: 320, r: 18, targetR: 18 };
+let gameObjects = [];
+let touchStartPos = null, touchCurrentPos = null;
 
 function initHoleGame() {
     scoreHole = 0; timeHole = 60; gameOverHole = false; holeFrame = 0;
-    holeObj = { x: 170, y: 320, r: 20, targetR: 20 }; gameObjects = [];
-    activeHole = true; startHoleBtn.textContent = "RESET CITY";
-    for(let i=0; i<45; i++) spawnCityObject(true); // 元通りのオブジェクト密度に復元
-    manageMasterLoop();
+    holeObj.x = 170; holeObj.y = 320; holeObj.r = 18; holeObj.targetR = 18;
+    gameObjects = []; activeHole = true; startHoleBtn.textContent = "RESET CITY";
+    for(let i=0; i<40; i++) spawnCityObject(true);
 }
 function spawnCityObject(isInit = false) {
-    const types = [
-        {w:12, h:16, s:10,  c:'#ffcc00'}, // 小ビル
-        {w:20, h:28, s:35,  c:'#ff9f0a'}, // 中ビル
-        {w:28, h:45, s:120, c:'#30d158'}, // 大ビル
-        {w:44, h:75, s:300, c:'#bf5af2'}  // 巨大ビル
-    ];
+    const types = [{w:6,h:12,s:10,c:'#ffcc00'}, {w:18,h:10,s:35,c:'#ff9f0a'}, {w:24,h:22,s:120,c:'#30d158'}, {w:40,h:90,s:300,c:'#bf5af2'}];
     let t = types[Math.floor(Math.random()*types.length)];
-    gameObjects.push({ x: Math.random()*300+20, y: isInit?Math.random()*380+40:-60, w: t.w, h: t.h, score: t.s, color: t.c, sucked: false, scale: 1.0 });
+    gameObjects.push({ x: Math.random()*300+20, y: isInit?Math.random()*380+50:-40, w: t.w, h: t.h, score: t.s, color: t.c, sucked: false, scale: 1.0, z: 0 });
 }
-
-function handleHoleTouch(clientX, clientY) {
-    let r = hCanvas.getBoundingClientRect();
-    touchStartPos = { x: clientX - r.left, y: clientY - r.top }; touchCurrentPos = {...touchStartPos};
-}
-hCanvas.addEventListener("touchstart", (e) => { handleHoleTouch(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+hCanvas.addEventListener("touchstart", (e) => {
+    let t = e.touches[0], r = hCanvas.getBoundingClientRect();
+    touchStartPos = { x: t.clientX - r.left, y: t.clientY - r.top }; touchCurrentPos = {...touchStartPos};
+}, {passive:true});
 hCanvas.addEventListener("touchmove", (e) => {
-    if(!touchStartPos) return; let r = hCanvas.getBoundingClientRect();
-    touchCurrentPos = { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    if(!touchStartPos) return; let t = e.touches[0], r = hCanvas.getBoundingClientRect();
+    touchCurrentPos = { x: t.clientX - r.left, y: t.clientY - r.top };
 }, {passive:true});
 hCanvas.addEventListener("touchend", () => { touchStartPos = null; });
 
 function updateHolePhysics() {
     if(!activeHole || gameOverHole) return; holeFrame++;
     if(holeFrame%60===0 && timeHole>0) { timeHole--; if(timeHole<=0) gameOverHole=true; }
-    if(holeObj.r < holeObj.targetR) holeObj.r += 0.3; // 吸収時の穴の成長速度を正常化
+    if(holeObj.r < holeObj.targetR) holeObj.r += 0.2;
     if(touchStartPos && touchCurrentPos) {
         let dx = touchCurrentPos.x - touchStartPos.x, dy = touchCurrentPos.y - touchStartPos.y;
-        if(Math.hypot(dx,dy)>3) { holeObj.x += Math.cos(Math.atan2(dy,dx))*4.5; holeObj.y += Math.sin(Math.atan2(dy,dx))*4.5; }
-        holeObj.x = Math.max(15, Math.min(325, holeObj.x)); holeObj.y = Math.max(30, Math.min(430, holeObj.y));
+        if(Math.hypot(dx,dy)>5) { holeObj.x += Math.cos(Math.atan2(dy,dx))*3; holeObj.y += Math.sin(Math.atan2(dy,dx))*2.5; }
     }
-    if(gameObjects.length < 45) spawnCityObject(false);
-    for(let i=gameObjects.length-1; i>=0; i--) {
-        let obj = gameObjects[i];
+    if(gameObjects.length < 40) spawnCityObject(false);
+    gameObjects.forEach((obj, i) => {
         if(!obj.sucked) {
-            obj.y += 0.6; if(obj.y > 490) { gameObjects.splice(i,1); continue; }
-            // 判定ロジックを元の「穴の半径内に入ったら吸い込み」に復元
-            if(Math.hypot(obj.x-holeObj.x, obj.y-holeObj.y) < holeObj.r) {
-                if(holeObj.r * 1.3 >= obj.w) obj.sucked = true; 
-            }
+            obj.y += 0.4; if(obj.y > 480) gameObjects.splice(i,1);
+            if(Math.hypot(obj.x-holeObj.x, (obj.y-holeObj.y)*1.3) < holeObj.r) obj.sucked = true;
         } else {
-            obj.x += (holeObj.x - obj.x)*0.25; obj.y += (holeObj.y - obj.y)*0.25; obj.scale -= 0.1;
-            if(obj.scale <= 0) { scoreHole += obj.score; holeObj.targetR += obj.w*0.12; gameObjects.splice(i,1); }
+            obj.x += (holeObj.x - obj.x)*0.2; obj.y += (holeObj.y - obj.y)*0.2; obj.scale -= 0.08; obj.z += 3;
+            if(obj.scale <= 0) { scoreHole += obj.score; holeObj.targetR += 1; gameObjects.splice(i,1); }
         }
-    }
+    });
 }
 function drawHoleGame() {
-    hCtx.clearRect(0,0,340,460);
-    hCtx.fillStyle="#0e1017"; hCtx.beginPath(); hCtx.arc(holeObj.x, holeObj.y, holeObj.r, 0, Math.PI*2); hCtx.fill();
-    hCtx.strokeStyle="#bf5af2"; hCtx.lineWidth=3; hCtx.stroke();
+    hCtx.clearRect(0,0,340,460); hCtx.fillStyle="rgba(255,255,255,0.05)";
+    for(let i=0; i<340; i+=40) hCtx.fillRect(i,0,1,460);
+    hCtx.fillStyle="#09090d"; hCtx.strokeStyle="#bf5af2"; hCtx.lineWidth=3;
+    hCtx.beginPath(); hCtx.ellipse(holeObj.x, holeObj.y*0.8, holeObj.r, holeObj.r*0.7, 0, 0, Math.PI*2); hCtx.fill(); hCtx.stroke();
     gameObjects.forEach(o => {
-        hCtx.save(); hCtx.translate(o.x, o.y); hCtx.fillStyle=o.color;
+        hCtx.save(); hCtx.translate(o.x, o.y*0.8 + o.z); hCtx.fillStyle=o.color;
         hCtx.fillRect(-o.w*o.scale/2, -o.h*o.scale, o.w*o.scale, o.h*o.scale); hCtx.restore();
     });
-    hCtx.fillStyle="#ffcc00"; hCtx.font="bold 14px sans-serif"; hCtx.textAlign="left"; hCtx.fillText("⏱️ "+timeHole+"s", 15, 30);
-    hCtx.textAlign="right"; hCtx.fillText("SCORE: "+scoreHole, 325, 30);
-    if(gameOverHole) { hCtx.fillStyle="rgba(0,0,0,0.8)"; hCtx.fillRect(0,0,340,460); hCtx.fillStyle="#ff3b30"; hCtx.font="bold 20px sans-serif"; hCtx.textAlign="center"; hCtx.fillText("GAME OVER (TIME UP)", 170, 230); }
+    hCtx.fillStyle="#ffcc00"; hCtx.font="bold 14px sans-serif"; hCtx.fillText("⏱️ "+timeHole+"s", 15, 30);
+    hCtx.fillText("SCORE: "+scoreHole, 240, 30);
 }
 startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 GAME 2: LAST WAR (本来の連射速度・倍率・ゾンビ戦を復元)
+   🔥 GAME 2: LAST WAR ロジック
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
-let scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = true, playerX = 160;
+let activeLW = false, scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = false, playerX = 160;
 let bullets = [], enemies = [], gates = [];
 
 function initLastWar() {
     scoreLW=0; soldierCount=5; lwFrame=0; gameOverLW=false; playerX=160; bullets=[]; enemies=[]; gates=[]; activeLW=true;
-    spawnLwGate(-100); spawnLwGate(-300);
-    manageMasterLoop();
+    gates.push({x:10, y:-100, w:140, type:'add', v:5}, {x:170, y:-100, w:140, type:'mult', v:2});
 }
-function spawnLwGate(yPos) {
-    gates.push(
-        {x:10,  y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?5:2},
-        {x:170, y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?3:2}
-    );
-}
-function handleLwMove(clientX) {
-    let r = lwCanvas.getBoundingClientRect(); playerX = (clientX - r.left) * (320/r.width);
-    playerX = Math.max(15, Math.min(305, playerX));
-}
-lwCanvas.addEventListener("touchstart", (e) => { handleLwMove(e.touches[0].clientX); }, {passive:true});
-lwCanvas.addEventListener("touchmove", (e) => { handleLwMove(e.touches[0].clientX); }, {passive:true});
+lwCanvas.addEventListener("touchmove", (e) => {
+    let r = lwCanvas.getBoundingClientRect(); playerX = (e.touches[0].clientX - r.left) * (320/r.width);
+}, {passive:true});
 
 function updateLastWar() {
     if(!activeLW || gameOverLW) return; lwFrame++;
-    // 連射速度を元の超爽快ペース（6フレームに1回）に復元
-    if(lwFrame%6===0) { 
-        let count = Math.min(6, Math.ceil(soldierCount/3));
-        for(let i=0; i<count; i++) bullets.push({x: playerX + (i - (count-1)/2)*8, y:430}); 
-    }
-    bullets.forEach((b,i)=> { b.y -= 9; if(b.y<-10) bullets.splice(i,1); });
-    
-    for(let i=gates.length-1; i>=0; i--) {
-        let g = gates[i]; g.y += 2.5;
-        if(g.y > 500) { gates.splice(i,1); if(gates.length<2) spawnLwGate(-50); continue; }
-        if(g.y>415 && g.y<445 && playerX>g.x && playerX<g.x+g.w) {
-            soldierCount = g.type==='add'? soldierCount+g.v : soldierCount*g.v;
-            // 通過したゲートのペアを両方消去
-            gates = gates.filter(item => item.y !== g.y);
-            if(gates.length<2) spawnLwGate(-100);
-            break;
+    if(lwFrame%10===0) bullets.push({x:playerX, y:420});
+    bullets.forEach((b,i)=> { b.y -= 7; if(b.y<-10) bullets.splice(i,1); });
+    gates.forEach(g => {
+        g.y += 1.5; if(g.y > 500) { g.y = -120; g.v = Math.random()>0.5?4:2; }
+        if(g.y>410 && g.y<430 && playerX>g.x && playerX<g.x+g.w) {
+            soldierCount = g.type==='add'?soldierCount+g.v : soldierCount*g.v; g.y = -200;
         }
-    }
-    
-    // 敵ゾンビの出現頻度とHPを元のやりごたえあるバランスに復元
-    if(lwFrame%20===0) enemies.push({x:Math.random()*260+30, y:-20, hp:Math.floor(Math.random()*12)+3});
-    for(let i=enemies.length-1; i>=0; i--) {
-        let e = enemies[i]; e.y += 2.0;
-        if(e.y > 450) { gameOverLW=true; enemies=[]; return; }
-        for(let bi=bullets.length-1; bi>=0; bi--) {
-            if(Math.hypot(bullets[bi].x-e.x, bullets[bi].y-e.y)<16) {
-                e.hp--; bullets.splice(bi,1);
-                if(e.hp<=0) { enemies.splice(i,1); scoreLW+=15; break; }
-            }
-        }
-    }
+    });
+    if(lwFrame%40===0) enemies.push({x:Math.random()*280+20, y:-20, hp:3});
+    enemies.forEach((e,i)=> {
+        e.y += 1.5; if(e.y>450) gameOverLW=true;
+        bullets.forEach((b,bi)=> { if(Math.hypot(b.x-e.x, b.y-e.y)<15) { e.hp--; bullets.splice(bi,1); if(e.hp<=0) { enemies.splice(i,1); scoreLW+=10; } } });
+    });
 }
 function drawLastWar() {
     lwCtx.clearRect(0,0,320,480);
-    gates.forEach(g => { 
-        lwCtx.fillStyle=g.type==='add'?"rgba(0,132,255,0.45)":"rgba(255,159,10,0.45)"; 
-        lwCtx.fillRect(g.x,g.y,g.w,35); lwCtx.fillStyle="#fff"; lwCtx.font="bold 14px monospace"; 
-        lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+22); 
-    });
+    gates.forEach(g => { lwCtx.fillStyle="rgba(0,120,255,0.6)"; lwCtx.fillRect(g.x,g.y,g.w,30); lwCtx.fillStyle="#fff"; lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+20); });
     lwCtx.fillStyle="#ffcc00"; bullets.forEach(b=>lwCtx.fillRect(b.x-2,b.y,4,10));
-    enemies.forEach(e=>{ 
-        lwCtx.fillStyle="#ff453a"; lwCtx.beginPath(); lwCtx.arc(e.x,e.y,13,0,Math.PI*2); lwCtx.fill(); 
-        lwCtx.fillStyle="#fff"; lwCtx.font="bold 10px sans-serif"; lwCtx.fillText(e.hp, e.x-4, e.y+3); 
-    });
-    lwCtx.fillStyle="#00f2fe"; lwCtx.font="bold 15px sans-serif"; lwCtx.fillText("👥 陸軍大隊: "+soldierCount, playerX-30, 460);
+    lwCtx.fillStyle="#ff3b30"; enemies.forEach(e=>lwCtx.beginPath(lwCtx.arc(e.x,e.y,10,0,Math.PI*2,lwCtx.fill())));
+    lwCtx.fillStyle="#00f2fe"; lwCtx.fillText("👥 "+soldierCount, playerX-15, 440);
     lwCtx.fillStyle="#fff"; lwCtx.fillText("SCORE: "+scoreLW, 10, 25);
-    if(gameOverLW) { lwCtx.fillStyle="rgba(0,0,0,0.85)"; lwCtx.fillRect(0,0,320,480); lwCtx.fillStyle="#ff3b30"; lwCtx.font="bold 22px sans-serif"; lwCtx.fillText("MISSION FAILED", 75, 240); }
 }
 startLwBtn.addEventListener("click", () => initLastWar());
 
 
 /* ====================================================================
-   🧱 GAME 3: BLOCK BREAKER (元のボール速度・ブロック配置を完全復元)
+   🧱 GAME 3: BLOCK BREAKER ロジック
    ==================================================================== */
 const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
-let bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = true;
+let activeBB = false, bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = false;
 
 function initBreaker() {
-    bx=170; by=230; bdx=3.2; bdy=-3.2; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true; bricks=[];
-    // 6列×4行のフルブロック配置を完全復元
+    bx=170; by=320; bdx=2; bdy=-3; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true;
     for(let i=0; i<6; i++) { bricks[i]=[]; for(let j=0; j<4; j++) bricks[i][j]=1; }
-    manageMasterLoop();
 }
-function handleBbMove(clientX) {
-    let r = bCanvas.getBoundingClientRect(); bpX = (clientX - r.left)*(340/r.width) - 40;
-    bpX = Math.max(0, Math.min(260, bpX));
-}
-bCanvas.addEventListener("touchstart", (e) => { handleBbMove(e.touches[0].clientX); }, {passive:true});
-bCanvas.addEventListener("touchmove", (e) => { handleBbMove(e.touches[0].clientX); }, {passive:true});
+bCanvas.addEventListener("touchmove", (e) => {
+    let r = bCanvas.getBoundingClientRect(); bpX = (e.touches[0].clientX - r.left)*(340/r.width) - 35;
+}, {passive:true});
 
 function updateBreaker() {
     if(!activeBB || gameOverBB) return;
-    bx+=bdx; by+=bdy; if(bx<7||bx>333) bdx=-bdx; if(by<7) bdy=-bdy;
-    // パドル反射
-    if(by>343 && by<351 && bx>bpX && bx<bpX+80) { 
-        bdy=-Math.abs(bdy); 
-        let hitPoint = (bx - (bpX + 40)) / 40; bdx = hitPoint * 4.0; // 当たる位置で角度変化
-        scoreBB++; 
-    }
-    if(by>380) gameOverBB=true;
+    bx+=bdx; by+=bdy; if(bx<5||bx>335) bdx=-bdx; if(by<5) bdy=-bdy;
+    if(by>340 && bx>bpX && bx<bpX+70) bdy=-3; if(by>370) gameOverBB=true;
     for(let i=0; i<6; i++){
         for(let j=0; j<4; j++){
             if(bricks[i][j]===1){
-                let x=i*50+20, y=j*22+50;
-                if(bx>x && bx<x+45 && by>y && by<y+18) { bdy=-bdy; bricks[i][j]=0; scoreBB+20; break; }
+                let x=i*50+20, y=j*20+40;
+                if(bx>x && bx<x+45 && by>y && by<y+15) { bdy=-bdy; bricks[i][j]=0; scoreBB++; }
             }
         }
     }
 }
 function drawBreaker() {
-    bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 80, 10);
-    bCtx.fillStyle="#ffcc00"; bCtx.beginPath(); bCtx.arc(bx,by,7,0,Math.PI*2); bCtx.fill();
-    for(let i=0; i<6; i++){ for(let j=0; j<4; j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*22+50, 45, 18); } } }
-    bCtx.fillStyle="#fff"; bCtx.font="bold 13px monospace"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
-    if(gameOverBB) { bCtx.fillStyle="rgba(0,0,0,0.85)"; bCtx.fillRect(0,0,340,380); bCtx.fillStyle="#ff3b30"; bCtx.font="bold 18px sans-serif"; bCtx.fillText("GAME OVER", 125, 200); }
+    bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 70, 10);
+    bCtx.fillStyle="#bf5af2"; bCtx.beginPath(); bCtx.arc(bx,by,6,0,Math.PI*2); bCtx.fill();
+    for(let i=0; i<6; i++){ for(let j=0; j<4; j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*20+40, 45, 15); } } }
+    bCtx.fillStyle="#fff"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
 }
 startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER (元のブースト速度・エネルギー減少を完全復元)
+   🛸 GAME 4: PADDLE JUMPER
    ==================================================================== */
-const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d"), thrustBtn = document.getElementById("btnThrust");
-let scorePJ = 0, energyPJ = 100, gameOverPJ = true, pjFrame = 0;
-let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }, targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
-let star3D = [], objects3D = [];
-let isThrusting = false, podExtension = 0.0, pjTouchStart = null;
+const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
+let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
+
+let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; 
+let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
+let star3D = [], objects3D = [], particles = [];
+let isThrusting = false;
+let podExtension = 0.0;
+let pjTouchStart = null;
 
 function initPuddleGame() {
-    scorePJ = 0; energyPJ = 100; gameOverPJ = false; activePJ = true; pjFrame = 0; isThrusting = false; podExtension = 0.0;
-    ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
-    star3D = []; objects3D = [];
-    for(let i=0; i<60; i++) star3D.push({ x: (Math.random()-0.5)*1200, y: (Math.random()-0.5)*1200, z: Math.random()*800 + 50, s: Math.random()*2+1 });
+    scorePJ = 0; energyPJ = 100; gameOverPJ = false; activePJ = true; pjFrame = 0;
+    ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 };
+    targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
+    star3D = []; objects3D = []; particles = []; isThrusting = false; podExtension = 0.0;
+
+    for(let i=0; i<80; i++) {
+        star3D.push({ x: (Math.random()-0.5)*1200, y: (Math.random()-0.5)*1200, z: Math.random()*800 + 50, s: Math.random()*2+1 });
+    }
     spawnPJObject('stargate', 0, 0, 700);
-    manageMasterLoop();
 }
-function spawnPJObject(type, x, y, z) { objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 85 : 25 }); }
+
+function spawnPJObject(type, x, y, z) {
+    objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 90 : 25 });
+}
 
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
     let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY, baseShipX: ship3D.x, baseShipY: ship3D.y };
 }, {passive:true});
+
 pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
-    let t = e.touches[0], dx = t.clientX - pjTouchStart.x, dy = t.clientY - pjTouchStart.y;
-    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 0.85));
-    targetShip.y = Math.max(-95, Math.min(95, pjTouchStart.baseShipY + dy * 0.85));
-    targetShip.rotZ = dx * 0.0035; targetShip.rotX = dy * 0.0035;
-}, {passive:true});
-pCanvas.addEventListener("touchend", () => { targetShip.rotZ = 0; targetShip.rotX = 0; pjTouchStart = null; });
+    let t = e.touches[0];
+    let dx = t.clientX - pjTouchStart.x;
+    let dy = t.clientY - pjTouchStart.y;
 
+    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 0.7));
+    targetShip.y = Math.max(-100, Math.min(100, pjTouchStart.baseShipY + dy * 0.7));
+    targetShip.rotZ = dx * 0.002;  
+    targetShip.rotX = dy * 0.002; 
+}, {passive:true});
+
+pCanvas.addEventListener("touchend", () => {
+    targetShip.rotZ = 0; targetShip.rotX = 0;
+    pjTouchStart = null;
+});
+
+const thrustBtn = document.getElementById("btnThrust");
 if(thrustBtn) {
-    thrustBtn.addEventListener("click", () => { if(!gameOverPJ) isThrusting = !isThrusting; });
+    ['touchstart', 'mousedown'].forEach(evt => {
+        thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = !isThrusting; });
+    });
 }
-function project(x, y, z, cx, cy) { let fov = 220; if(z <= 0) z = 1; return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z }; }
 
 function updatePuddlePhysics() {
-    if(!activePJ || gameOverPJ) return; pjFrame++;
-    ship3D.x += (targetShip.x - ship3D.x) * 0.12; ship3D.y += (targetShip.y - ship3D.y) * 0.12;
-    ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.1; ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.1;
-    podExtension += ((isThrusting ? 1.0 : 0.0) - podExtension) * 0.15;
-    
-    // 元のスリリングなブースト速度(16.0)と通常速度(6.5)を復元
-    let speed = isThrusting ? 16.0 : 6.5, camX = ship3D.x * 0.045, camY = ship3D.y * 0.045;
-    
-    // 通常時はジワジワ、ブースト時は激しくエネルギーを消費する仕様に戻す
-    energyPJ -= isThrusting ? 0.25 : 0.06;
+    if(!activePJ || gameOverPJ) return;
+    pjFrame++;
 
-    star3D.forEach(s => { s.z -= speed; s.x -= camX; s.y -= camY; if(s.z <= 10) { s.x = (Math.random()-0.5)*1200; s.y = (Math.random()-0.5)*1200; s.z = 800; } });
-    
+    ship3D.x += (targetShip.x - ship3D.x) * 0.1;
+    ship3D.y += (targetShip.y - ship3D.y) * 0.1;
+    ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.1;
+    ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.1;
+
+    if(isThrusting) {
+        podExtension += (1.0 - podExtension) * 0.1;
+    } else {
+        podExtension += (0.0 - podExtension) * 0.1;
+    }
+
+    let speed = isThrusting ? 15.0 : 7.0;
+    let camX = ship3D.x * 0.05;
+    let camY = ship3D.y * 0.05;
+
+    star3D.forEach(s => {
+        s.z -= speed; s.x -= camX; s.y -= camY;
+        if(s.z <= 10) { s.x = (Math.random()-0.5)*1200; s.y = (Math.random()-0.5)*1200; s.z = 800; }
+    });
+
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
+
         if(o.z <= 35 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
-            if(dist < o.r + 15) {
-                if(o.type === 'stargate') { scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 25); } else { energyPJ -= 30; }
+            if(dist < o.r + 20) {
+                if(o.type === 'stargate') {
+                    scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 15);
+                    for(let p=0; p<15; p++) particles.push({x: ship3D.x, y: ship3D.y, z: 40, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:30});
+                } else {
+                    energyPJ -= 20;
+                }
                 objects3D.splice(i,1);
             }
-        } else if(o.z <= 0) objects3D.splice(i,1);
+        } else if(o.z <= 0) {
+            objects3D.splice(i,1);
+        }
     }
-    if(objects3D.length < 4) spawnPJObject(Math.random()>0.35?'debris':'stargate', (Math.random()-0.5)*320, (Math.random()-0.5)*320, 800);
-    if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; isThrusting = false; }
+
+    for(let i=particles.length-1; i>=0; i--) {
+        let p = particles[i]; p.z -= speed * 0.5; p.x += p.vx; p.y += p.vy; p.life--;
+        if(p.life <= 0) particles.splice(i,1);
+    }
+
+    if(objects3D.length < 3) {
+        if(Math.random() > 0.4) spawnPJObject('debris', (Math.random()-0.5)*400, (Math.random()-0.5)*400, 800);
+        else spawnPJObject('stargate', (Math.random()-0.5)*150, (Math.random()-0.5)*150, 800);
+    }
+
+    if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
 }
+
+function project(x, y, z, cx, cy) {
+    let fov = 240; if(z <= 0) z = 1;
+    return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z };
+}
+
 function drawPuddleGame() {
-    pCtx.clearRect(0, 0, 340, 370); let cx = 170, cy = 185;
-    pCtx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    star3D.forEach(s => { let pt = project(s.x, s.y, s.z, cx, cy); if(pt.x >= 0 && pt.x <= 340 && pt.y >= 0 && pt.y <= 370) pCtx.fillRect(pt.x, pt.y, s.s, s.s); });
-    objects3D.forEach(o => {
-        let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.5;
-        if(o.type === 'stargate') {
-            pCtx.strokeStyle = "#30d158"; pCtx.lineWidth = 3; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
-        } else {
-            pCtx.fillStyle = "#8e8e93"; pCtx.fillRect(pt.x-sz/2, pt.y-sz/2, sz, sz);
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
+
+    pCtx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    star3D.forEach(s => {
+        let pt = project(s.x, s.y, s.z, cx, cy);
+        if(pt.x >= 0 && pt.x <= pCanvas.width && pt.y >= 0 && pt.y <= pCanvas.height) {
+            pCtx.fillRect(pt.x, pt.y, s.s, s.s);
         }
     });
+
+    particles.forEach(p => {
+        let pt = project(p.x, p.y, p.z, cx, cy);
+        pCtx.fillStyle = `rgba(0, 210, 255, ${p.life/30})`;
+        pCtx.fillRect(pt.x, pt.y, pt.scale*0.5, pt.scale*0.5);
+    });
+
+    objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
+        let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.5;
+        if(pt.x < -150 || pt.x > pCanvas.width+150 || pt.y < -150 || pt.y > pCanvas.height+150) return;
+
+        if(o.type === 'stargate') {
+            pCtx.strokeStyle = "#43525c"; pCtx.lineWidth = Math.max(3, pt.scale * 0.5);
+            pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
+            let grad = pCtx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, sz);
+            grad.addColorStop(0, "rgba(0, 110, 220, 0.5)");
+            grad.addColorStop(0.8, "rgba(0, 230, 255, 0.3)");
+            grad.addColorStop(1, "rgba(0, 40, 80, 0.0)");
+            pCtx.fillStyle = grad; pCtx.fill();
+            pCtx.fillStyle = "#ff5b05";
+            for(let a=0; a<Math.PI*2; a+=Math.PI/4) {
+                pCtx.fillRect(pt.x + Math.cos(a)*sz - 4, pt.y + Math.sin(a)*sz - 4, 8, 8);
+            }
+        } else {
+            pCtx.fillStyle = "#2d241e"; pCtx.strokeStyle = "#473a32"; pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            for(let a=0; a<Math.PI*2; a+=Math.PI/3) {
+                let r = sz * (0.8 + Math.sin(a*3 + o.z)*0.2);
+                let px = pt.x + Math.cos(a)*r, py = pt.y + Math.sin(a)*r;
+                if(a===0) pCtx.moveTo(px,py); else pCtx.lineTo(px,py);
+            }
+            pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+        }
+    });
+
     drawStargateJumper(cx, cy);
-    pCtx.fillStyle = "#30d158"; pCtx.font = "bold 13px monospace"; pCtx.fillText("ENERGY: " + Math.ceil(energyPJ) + "%", 15, 25);
-    pCtx.fillText("SCORE: " + scorePJ, 240, 25);
-    if(gameOverPJ) { pCtx.fillStyle = "rgba(5,7,12,0.92)"; pCtx.fillRect(0,0,340,370); pCtx.font = "bold 16px sans-serif"; pCtx.fillStyle = "#ff3b30"; pCtx.fillText("SYSTEM CRITICAL / GAME OVER", 50, 185); }
+
+    pCtx.fillStyle = "#8da390"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
+    pCtx.fillText("🛸 PADDLE JUMPER SYSTEM", 15, 25);
+    pCtx.fillStyle = isThrusting ? "#00f2fe" : "#8da390";
+    pCtx.fillText("⚙️ DRIVE PODS: " + (isThrusting ? "ENGAGED" : "RETRACTED"), 15, 43);
+
+    pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
+    pCtx.fillStyle = "rgba(255,255,255,0.1)"; pCtx.fillRect(15, 55, 100, 6);
+    pCtx.fillStyle = energyPJ > 30 ? "#30d158" : "#ff3b30"; pCtx.fillRect(15, 55, energyPJ, 6);
+
+    if(gameOverPJ) {
+        pCtx.fillStyle = "rgba(5,7,12,0.95)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
+        pCtx.font = "bold 16px sans-serif"; pCtx.textAlign = "center"; pCtx.fillStyle = "#ff3b30";
+        pCtx.fillText("HULL CRITICAL / GAME OVER", pCanvas.width/2, pCanvas.height/2);
+    }
 }
+
 function drawStargateJumper(cx, cy) {
-    let pt = project(ship3D.x, ship3D.y + 12, 35, cx, cy); let scale = pt.scale * 0.42;
-    pCtx.save(); pCtx.translate(pt.x, pt.y); pCtx.rotate(ship3D.rotZ);
-    pCtx.fillStyle = "#0a84ff"; pCtx.fillRect(-20*scale, -10*scale, 40*scale, 20*scale);
-    let ext = podExtension * 9 * scale; pCtx.fillStyle = "#5e5ce6"; pCtx.fillRect(-28*scale-ext, -5*scale, 8*scale, 10*scale); pCtx.fillRect(20*scale+ext, -5*scale, 8*scale, 10*scale);
+    let baseZ = 35; let pt = project(ship3D.x, ship3D.y + 10, baseZ, cx, cy); let scale = pt.scale * 0.42; 
+    pCtx.save(); pCtx.translate(pt.x, pt.y); pCtx.rotate(ship3D.rotZ); pCtx.transform(1, 0, 0, 1 - Math.abs(ship3D.rotX), 0, 0);
+    let colorBodyDark = "#29332a", colorBodyBase = "#4a594c", colorBodyLight = "#697a6b", colorWindowFrame = "#524b3e", colorInside = "#131714", colorPodUnit = "#3d473f";
+    let bodyGrad = pCtx.createLinearGradient(-35 * scale, 0, 35 * scale, 0); bodyGrad.addColorStop(0, colorBodyDark); bodyGrad.addColorStop(0.2, colorBodyBase); bodyGrad.addColorStop(0.5, colorBodyLight); bodyGrad.addColorStop(0.8, colorBodyBase); bodyGrad.addColorStop(1, colorBodyDark);
+    pCtx.fillStyle = bodyGrad; pCtx.strokeStyle = colorBodyDark; pCtx.lineWidth = 1.5;
+    pCtx.beginPath(); pCtx.moveTo(-32 * scale, 15 * scale); pCtx.lineTo(-32 * scale, -10 * scale); pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale); pCtx.lineTo(32 * scale, 15 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    pCtx.strokeStyle = "rgba(20, 30, 22, 0.45)"; pCtx.lineWidth = 1; pCtx.beginPath(); pCtx.moveTo(-20 * scale, -24 * scale); pCtx.lineTo(-20 * scale, 15 * scale); pCtx.moveTo(20 * scale, -24 * scale); pCtx.lineTo(20 * scale, 15 * scale); pCtx.moveTo(-32 * scale, -5 * scale); pCtx.lineTo(32 * scale, -5 * scale); pCtx.moveTo(-32 * scale, 5 * scale); pCtx.lineTo(32 * scale, 5 * scale); pCtx.stroke();
+    pCtx.fillStyle = colorWindowFrame; pCtx.beginPath(); pCtx.moveTo(-24 * scale, 10 * scale); pCtx.lineTo(-24 * scale, -5 * scale); pCtx.bezierCurveTo(-24 * scale, -22 * scale, 24 * scale, -22 * scale, 24 * scale, -5 * scale); pCtx.lineTo(24 * scale, 10 * scale); pCtx.closePath(); pCtx.fill();
+    pCtx.fillStyle = colorInside; pCtx.beginPath(); pCtx.moveTo(-21 * scale, 8 * scale); pCtx.lineTo(-21 * scale, -4 * scale); pCtx.bezierCurveTo(-21 * scale, -19 * scale, 21 * scale, -19 * scale, 21 * scale, -4 * scale); pCtx.lineTo(21 * scale, 8 * scale); pCtx.closePath(); pCtx.fill();
+    pCtx.fillStyle = "#333b35"; pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale); pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale); pCtx.fillStyle = "rgba(0, 255, 150, 0.4)"; pCtx.fillRect(-5 * scale, 2 * scale, 3 * scale, 2 * scale); pCtx.fillRect(2 * scale, 2 * scale, 3 * scale, 2 * scale);
+    let extOffset = podExtension * 12 * scale; pCtx.fillStyle = colorPodUnit; pCtx.strokeStyle = colorBodyDark;
+    pCtx.save(); pCtx.translate(-32 * scale - extOffset, 0); pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(-6 * scale, -5 * scale); pCtx.lineTo(-6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke(); if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale); } pCtx.restore();
+    pCtx.save(); pCtx.translate(32 * scale + extOffset, 0); pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(6 * scale, -5 * scale); pCtx.lineTo(6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke(); if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale); } pCtx.restore();
+    if(isThrusting && podExtension > 0.8) { let fl = 15 + Math.sin(pjFrame) * 4; let pGrad = pCtx.createLinearGradient(0, 10 * scale, 0, (10 + fl) * scale); pGrad.addColorStop(0, "rgba(0, 190, 255, 0.7)"); pGrad.addColorStop(1, "rgba(0, 80, 255, 0)"); pCtx.fillStyle = pGrad; pCtx.fillRect(-37 * scale, 10 * scale, 4 * scale, fl * scale); pCtx.fillRect(33 * scale, 10 * scale, 4 * scale, fl * scale); }
     pCtx.restore();
 }
 
 
 /* ====================================================================
-   🔄 メインループ統合マネージャー
+   🔄 アニメーション管理 ＆ オーディオプレイヤーロジック
    ==================================================================== */
 function masterGameLoop() {
     if (activeHole) { updateHolePhysics(); drawHoleGame(); }
     if (activeLW) { updateLastWar(); drawLastWar(); }
     if (activeBB) { updateBreaker(); drawBreaker(); }
     if (activePJ) { updatePuddlePhysics(); drawPuddleGame(); }
-    animationFrameId = requestAnimationFrame(masterGameLoop);
+    requestAnimationFrame(masterGameLoop);
 }
-document.addEventListener("visibilitychange", () => { isPageVisible = (document.visibilityState === "visible"); manageMasterLoop(); });
+masterGameLoop();
 
-
-/* ====================================================================
-   🎧 オーディオプレイヤーコア制御 & 隠しコード
-   ==================================================================== */
 const picker = document.getElementById("picker"), player = document.getElementById("player"), statusEl = document.getElementById("status");
 const playBtn = document.getElementById("playBtn"), seekbarProgress = document.getElementById("seekbarProgress"), seekbarHandle = document.getElementById("seekbarHandle");
-const currentTimeEl = document.getElementById("currentTime"), durationTimeEl = document.getElementById("durationTime"), seekTouch = document.getElementById("seekbarTouchZone");
+const currentTimeEl = document.getElementById("currentTime"), durationTimeEl = document.getElementById("durationTime");
 let currentUrl = null;
 
 if(picker) {
@@ -524,28 +570,66 @@ if(picker) {
         player.addEventListener("loadedmetadata", () => { durationTimeEl.textContent = formatTime(player.duration); }, {once:true});
     });
 }
+
 if(playBtn) {
     playBtn.addEventListener("click", () => { if(!player.src) return; if(player.paused) { player.play(); playBtn.textContent = "PAUSE"; } else { player.pause(); playBtn.textContent = "PLAY"; } });
 }
+
 function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), sec=Math.floor(s%60); return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0'); }
+
 if(player) {
-    player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; if(!isNaN(pct)){ seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; } });
-}
-if(seekTouch) {
-    seekTouch.addEventListener("click", (e) => { if(!player.src || isNaN(player.duration)) return; const r = seekTouch.getBoundingClientRect(); player.currentTime = ((e.clientX - r.left) / r.width) * player.duration; });
+    player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
 }
 
-// 🔒 隠しコード
-const secretInput = document.getElementById("secretCodeInput"), secretBtn = document.getElementById("secretCodeBtn");
+
+/* ====================================================================
+   🔑 隠しコード判定ロジック (Rodney-Private -> Insane slowed.wav)
+   ==================================================================== */
+const secretInput = document.getElementById("secretCodeInput");
+const secretBtn = document.getElementById("secretCodeBtn");
+
+// 同じ階層フォルダに音声を配置した場合はファイル名のみで読み込みます
+const PRIVATE_TRACK_URL = "Insane slowed.wav"; 
+
 function checkSecretCode() {
-    if (secretInput.value.trim() === "Rodney-Private") {
-        player.src = "Insane slowed.wav"; player.load(); statusEl.textContent = "🔒 INSANE SLOWED.WAV LOADED";
-        player.addEventListener("loadedmetadata", () => { durationTimeEl.textContent = formatTime(player.duration); }, {once:true});
-        secretInput.value = ""; alert("隠しトラックをロードしました！"); closeMenu();
+    if (!secretInput) return;
+    
+    // 入力された文字の前後の空白をカットして正確に判定
+    const code = secretInput.value.trim();
+    
+    if (code === "Rodney-Private") {
+        player.src = PRIVATE_TRACK_URL;
+        player.load();
+        
+        // プレイヤーのステータス画面を更新
+        statusEl.textContent = "🔒 INSANE SLOWED.WAV LOADED";
+        
+        player.addEventListener("loadedmetadata", () => { 
+            durationTimeEl.textContent = formatTime(player.duration); 
+        }, {once:true});
+        
+        // 入力欄をクリアしてメニューを自動で閉じる
+        secretInput.value = "";
+        alert("隠しトラック「Insane slowed.wav」をロードしました！");
+        closeMenu(); 
+    } else if (code !== "") {
+        alert("コードが正しくありません。");
     }
 }
-if(secretBtn) secretBtn.addEventListener("click", checkSecretCode);
-if(secretInput) secretInput.addEventListener("keydown", (e) => { if(e.key === 'Enter') { e.preventDefault(); checkSecretCode(); } });
+
+// 決定ボタンクリックで実行
+if (secretBtn) {
+    secretBtn.addEventListener("click", checkSecretCode);
+}
+
+// キーボードのEnterキーでも実行できるように設定
+if (secretInput) {
+    secretInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            checkSecretCode();
+        }
+    });
+}
 </script>
 </body>
 </html>
