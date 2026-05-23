@@ -5,12 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>AL&G - Loop Player & Arcade Edition</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AL&G">
-<link rel="apple-touch-icon" href="icon-192.png">
-
 <style>
 body {
     background: #050508; color: #e5e5ea;
@@ -20,7 +14,6 @@ body {
     min-height: 100vh; min-height: 100dvh;
     box-sizing: border-box; overflow: hidden; touch-action: none;
 }
-#particleCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 
 /* ☰ メニュー */
 .menu-trigger {
@@ -47,12 +40,12 @@ body {
 .game-launch-btn.holeio { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
 .game-launch-btn.lastwar { background: linear-gradient(135deg, #ff9f0a, #ff3b30); }
 .game-launch-btn.breaker { background: linear-gradient(135deg, #0a84ff, #0055d4); }
-.game-launch-btn.puddle { background: linear-gradient(135deg, #5c6b5d, #2e3b2f); text-shadow: 0 0 8px rgba(92,107,93,0.6); display: block !important; }
+.game-launch-btn.puddle { background: linear-gradient(135deg, #5c6b5d, #2e3b2f); text-shadow: 0 0 8px rgba(92,107,93,0.6); }
 
 .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
-/* ⚡ プレイヤーUI */
+/* ⚡ メインオーディオプレイヤーUI */
 .main-container {
     background: linear-gradient(145deg, #0e0e12, #15151e); border: 1px solid #222230; border-radius: 24px;
     padding: 35px 25px; width: 90%; max-width: 420px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; display: flex; flex-direction: column; gap: 20px;
@@ -70,12 +63,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .status-monitor { background: #09090d; border: 1px solid #2c2c3e; border-radius: 12px; padding: 12px; }
 #status { margin: 0; color: #0a84ff; font-family: monospace; font-size: 12px; font-weight: bold; }
 
-#loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050508; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
-#loadingOverlay.active { opacity: 1; pointer-events: auto; }
-.spinner { width: 40px; height: 40px; border: 4px solid transparent; border-top: 4px solid #0a84ff; border-right: 4px solid #bf5af2; border-radius: 50%; animation: spin 0.8s infinite linear; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
-
-/* 🎮 各種ゲーム画面 */
+/* 🎮 各種ゲーム画面オーバーレイ */
 .game-overlay-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #09090d; z-index: 3000; display: none;
@@ -101,9 +89,6 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 </style>
 </head>
 <body>
-
-<canvas id="particleCanvas"></canvas>
-<div id="loadingOverlay" class="active"><div class="spinner"></div></div>
 
 <div class="menu-trigger" id="menuTrigger"><span></span><span></span><span></span></div>
 <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -170,13 +155,13 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
         <div class="jumper-controls">
             <button class="ctrl-pad" id="btnThrust">✨ DRIVE PODS (外殻ユニット展開)</button>
         </div>
-        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※スワイプで上下左右に機体が傾きながら移動します</p>
+        <p style="font-size:11px; color:#8e8e93; margin:8px 0 0 0;">※画面をスワイプして上下左右に機体を移動・ローテーションさせます</p>
     </div>
 </div>
 
 
 <script>
-/* --- 画面遷移管理 --- */
+/* --- 画面遷移コントロール --- */
 const menuTrigger = document.getElementById("menuTrigger");
 const sideDrawer = document.getElementById("sideDrawer");
 const drawerOverlay = document.getElementById("drawerOverlay");
@@ -208,11 +193,11 @@ document.getElementById("launchPuddleBtn").addEventListener("click", () => { clo
 
 
 /* ====================================================================
-   🕳️ GAME 1: HOLE.IO
+   🕳️ GAME 1: HOLE.IO 物理ロジック
    ==================================================================== */
 const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
 let activeHole = false, scoreHole = 0, timeHole = 60, gameOverHole = false, holeFrame = 0;
-let holeObj = { x: 170, y: 320, r: 18, targetR: 18, speed: 3.5 };
+let holeObj = { x: 170, y: 320, r: 18, targetR: 18 };
 let gameObjects = [];
 let touchStartPos = null, touchCurrentPos = null;
 
@@ -272,7 +257,7 @@ startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 GAME 2: LAST WAR
+   🔥 GAME 2: LAST WAR ロジック
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
 let activeLW = false, scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = false, playerX = 160;
@@ -314,7 +299,7 @@ startLwBtn.addEventListener("click", () => initLastWar());
 
 
 /* ====================================================================
-   🧱 GAME 3: BLOCK BREAKER
+   🧱 GAME 3: BLOCK BREAKER ロジック
    ==================================================================== */
 const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
 let activeBB = false, bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = false;
@@ -350,7 +335,7 @@ startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER (スターゲイト機体完全再現・2.5Dフライト)
+   🛸 GAME 4: PADDLE JUMPER (スターゲイト機体精密再現・3D空間飛行)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
 let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
@@ -359,7 +344,7 @@ let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 };
 let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
 let star3D = [], objects3D = [], particles = [];
 let isThrusting = false;
-let podExtension = 0.0; // ドライブポッド展開アニメーション用
+let podExtension = 0.0;
 let pjTouchStart = null;
 
 function initPuddleGame() {
@@ -368,11 +353,9 @@ function initPuddleGame() {
     targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
     star3D = []; objects3D = []; particles = []; isThrusting = false; podExtension = 0.0;
 
-    // ワームホール通過をイメージしたスターダスト
     for(let i=0; i<80; i++) {
         star3D.push({ x: (Math.random()-0.5)*1200, y: (Math.random()-0.5)*1200, z: Math.random()*800 + 50, s: Math.random()*2+1 });
     }
-    // 初期のスターゲイトを配置
     spawnPJObject('stargate', 0, 0, 700);
 }
 
@@ -380,7 +363,6 @@ function spawnPJObject(type, x, y, z) {
     objects3D.push({ type: type, x: x, y: y, z: z, r: type==='stargate'? 90 : 25 });
 }
 
-// 直感的なスワイプ追従コントロール
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
     let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY, baseShipX: ship3D.x, baseShipY: ship3D.y };
@@ -403,23 +385,22 @@ pCanvas.addEventListener("touchend", () => {
     pjTouchStart = null;
 });
 
-// ドライブポッド展開ボタンのトリガー
 const thrustBtn = document.getElementById("btnThrust");
-['touchstart', 'mousedown'].forEach(evt => {
-    thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = !isThrusting; });
-});
+if(thrustBtn) {
+    ['touchstart', 'mousedown'].forEach(evt => {
+        thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = !isThrusting; });
+    });
+}
 
 function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return;
     pjFrame++;
 
-    // 位置と傾きのイージング追従
     ship3D.x += (targetShip.x - ship3D.x) * 0.1;
     ship3D.y += (targetShip.y - ship3D.y) * 0.1;
     ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.1;
     ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.1;
 
-    // ドライブポッド展開アニメーションのスムーズ化
     if(isThrusting) {
         podExtension += (1.0 - podExtension) * 0.1;
     } else {
@@ -427,27 +408,22 @@ function updatePuddlePhysics() {
     }
 
     let speed = isThrusting ? 15.0 : 7.0;
-
     let camX = ship3D.x * 0.05;
     let camY = ship3D.y * 0.05;
 
-    // 宇宙空間の移動
     star3D.forEach(s => {
         s.z -= speed; s.x -= camX; s.y -= camY;
         if(s.z <= 10) { s.x = (Math.random()-0.5)*1200; s.y = (Math.random()-0.5)*1200; s.z = 800; }
     });
 
-    // 障害物・ゲイトの移動処理
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
 
-        // 衝突判定（機体付近を通過した時）
         if(o.z <= 35 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
             if(dist < o.r + 20) {
                 if(o.type === 'stargate') {
                     scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 15);
-                    // 通過エフェクト粒子
                     for(let p=0; p<15; p++) particles.push({x: ship3D.x, y: ship3D.y, z: 40, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:30});
                 } else {
                     energyPJ -= 20;
@@ -459,13 +435,11 @@ function updatePuddlePhysics() {
         }
     }
 
-    // パーティクル更新
     for(let i=particles.length-1; i>=0; i--) {
         let p = particles[i]; p.z -= speed * 0.5; p.x += p.vx; p.y += p.vy; p.life--;
         if(p.life <= 0) particles.splice(i,1);
     }
 
-    // 次のゲイトやデブリの生成
     if(objects3D.length < 3) {
         if(Math.random() > 0.4) spawnPJObject('debris', (Math.random()-0.5)*400, (Math.random()-0.5)*400, 800);
         else spawnPJObject('stargate', (Math.random()-0.5)*150, (Math.random()-0.5)*150, 800);
@@ -483,7 +457,6 @@ function drawPuddleGame() {
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
     let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
 
-    // 背景星々
     pCtx.fillStyle = "rgba(255, 255, 255, 0.7)";
     star3D.forEach(s => {
         let pt = project(s.x, s.y, s.z, cx, cy);
@@ -492,35 +465,29 @@ function drawPuddleGame() {
         }
     });
 
-    // 粒子群の描画
     particles.forEach(p => {
         let pt = project(p.x, p.y, p.z, cx, cy);
         pCtx.fillStyle = `rgba(0, 210, 255, ${p.life/30})`;
         pCtx.fillRect(pt.x, pt.y, pt.scale*0.5, pt.scale*0.5);
     });
 
-    // 3Dオブジェクト描画
     objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
         let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.5;
         if(pt.x < -150 || pt.x > pCanvas.width+150 || pt.y < -150 || pt.y > pCanvas.height+150) return;
 
         if(o.type === 'stargate') {
-            // スターゲイトの巨大なリングを再現
             pCtx.strokeStyle = "#43525c"; pCtx.lineWidth = Math.max(3, pt.scale * 0.5);
             pCtx.beginPath(); pCtx.arc(pt.x, pt.y, sz, 0, Math.PI*2); pCtx.stroke();
-            // イベントホライズン（内側の青いモヤ）
             let grad = pCtx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, sz);
             grad.addColorStop(0, "rgba(0, 110, 220, 0.5)");
             grad.addColorStop(0.8, "rgba(0, 230, 255, 0.3)");
-シェーディング         grad.addColorStop(1, "rgba(0, 40, 80, 0.0)");
+            grad.addColorStop(1, "rgba(0, 40, 80, 0.0)");
             pCtx.fillStyle = grad; pCtx.fill();
-            // シェブロン（外枠の赤い固定鍵パーツ）
             pCtx.fillStyle = "#ff5b05";
             for(let a=0; a<Math.PI*2; a+=Math.PI/4) {
                 pCtx.fillRect(pt.x + Math.cos(a)*sz - 4, pt.y + Math.sin(a)*sz - 4, 8, 8);
             }
         } else {
-            // 宇宙デブリ・アステロイド
             pCtx.fillStyle = "#2d241e"; pCtx.strokeStyle = "#473a32"; pCtx.lineWidth = 1.5;
             pCtx.beginPath();
             for(let a=0; a<Math.PI*2; a+=Math.PI/3) {
@@ -532,18 +499,14 @@ function drawPuddleGame() {
         }
     });
 
-    // 🛸 スターゲイトのパドルジャンパー本体を描画
     drawStargateJumper(cx, cy);
 
-    // UIオーバーレイ
     pCtx.fillStyle = "#8da390"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
     pCtx.fillText("🛸 PADDLE JUMPER SYSTEM", 15, 25);
     pCtx.fillStyle = isThrusting ? "#00f2fe" : "#8da390";
     pCtx.fillText("⚙️ DRIVE PODS: " + (isThrusting ? "ENGAGED" : "RETRACTED"), 15, 43);
 
     pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
-    
-    // シールド耐久度バー表示
     pCtx.fillStyle = "rgba(255,255,255,0.1)"; pCtx.fillRect(15, 55, 100, 6);
     pCtx.fillStyle = energyPJ > 30 ? "#30d158" : "#ff3b30"; pCtx.fillRect(15, 55, energyPJ, 6);
 
@@ -554,7 +517,6 @@ function drawPuddleGame() {
     }
 }
 
-// 🎨 アップロード画像をピクセル比・グラデーション・構造レベルで精密再現する描画エンジン
 function drawStargateJumper(cx, cy) {
     let baseZ = 35;
     let pt = project(ship3D.x, ship3D.y + 10, baseZ, cx, cy); 
@@ -563,19 +525,15 @@ function drawStargateJumper(cx, cy) {
     pCtx.save();
     pCtx.translate(pt.x, pt.y);
     pCtx.rotate(ship3D.rotZ);
-    // 上下のピッチ傾きを機体に反映
     pCtx.transform(1, 0, 0, 1 - Math.abs(ship3D.rotX), 0, 0);
 
-    // 画像カラーパレット：完全な金属オリーブ・ゴールドグリーン質感
-    let colorBodyDark = "#29332a";   // シャドウ部・パネルの彫り込み溝
-    let colorBodyBase = "#4a594c";   // 基本となるくすんだオリーブグリーン
-    let colorBodyLight = "#697a6b";  // 上部のハイライト金属色
-    let colorWindowFrame = "#524b3e"; // 窓枠のゴールドブロンズ色の縁
-    let colorInside = "#131714";      // コックピット内部の暗がり
-    let colorPodUnit = "#3d473f";    // 左右ユニット
+    let colorBodyDark = "#29332a";
+    let colorBodyBase = "#4a594c";
+    let colorBodyLight = "#697a6b";
+    let colorWindowFrame = "#524b3e";
+    let colorInside = "#131714";
+    let colorPodUnit = "#3d473f";
 
-    // --- 1. 機体メインシリンダー（円筒形の本体）のカプセル描画 ---
-    // 外郭の丸みグラデーションを再現
     let bodyGrad = pCtx.createLinearGradient(-35 * scale, 0, 35 * scale, 0);
     bodyGrad.addColorStop(0, colorBodyDark);
     bodyGrad.addColorStop(0.2, colorBodyBase);
@@ -587,30 +545,24 @@ function drawStargateJumper(cx, cy) {
     pCtx.strokeStyle = colorBodyDark;
     pCtx.lineWidth = 1.5;
 
-    // 前面を丸く、後ろを円筒にした特徴的なシェイプをパスで生成
     pCtx.beginPath();
-    pCtx.moveTo(-32 * scale, 15 * scale); // 左下
-    pCtx.lineTo(-32 * scale, -10 * scale); // 左側面
-    pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale); // 上部円弧
-    pCtx.lineTo(32 * scale, 15 * scale); // 右側面
+    pCtx.moveTo(-32 * scale, 15 * scale);
+    pCtx.lineTo(-32 * scale, -10 * scale);
+    pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale);
+    pCtx.lineTo(32 * scale, 15 * scale);
     pCtx.closePath();
     pCtx.fill();
     pCtx.stroke();
 
-    // --- 2. 画像にある表面のメカニカルなパネルライン（幾何学的な細い溝）の再現 ---
     pCtx.strokeStyle = "rgba(20, 30, 22, 0.45)";
     pCtx.lineWidth = 1;
-    // 縦方向のライン
     pCtx.beginPath();
     pCtx.moveTo(-20 * scale, -24 * scale); pCtx.lineTo(-20 * scale, 15 * scale);
     pCtx.moveTo(20 * scale, -24 * scale); pCtx.lineTo(20 * scale, 15 * scale);
-    // 横方向の分割ライン
     pCtx.moveTo(-32 * scale, -5 * scale); pCtx.lineTo(32 * scale, -5 * scale);
     pCtx.moveTo(-32 * scale, 5 * scale); pCtx.lineTo(32 * scale, 5 * scale);
     pCtx.stroke();
 
-    // --- 3. 正面の斜めカットされた巨大な窓枠 ＆ コックピット内部 ---
-    // 窓の外輪郭（ブロンズ色の傾斜フレーム）
     pCtx.fillStyle = colorWindowFrame;
     pCtx.beginPath();
     pCtx.moveTo(-24 * scale, 10 * scale);
@@ -620,7 +572,6 @@ function drawStargateJumper(cx, cy) {
     pCtx.closePath();
     pCtx.fill();
 
-    // 窓の内側（コックピット内の空間）
     pCtx.fillStyle = colorInside;
     pCtx.beginPath();
     pCtx.moveTo(-21 * scale, 8 * scale);
@@ -630,56 +581,29 @@ function drawStargateJumper(cx, cy) {
     pCtx.closePath();
     pCtx.fill();
 
-    // 窓からうっすら見えるシートやクルー（ドット状の内部ディテール）
     pCtx.fillStyle = "#333b35";
-    pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale); // パイロット席
-    pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale);  // コ・パイロット席
-    pCtx.fillStyle = "rgba(0, 255, 150, 0.4)"; // コンソールの緑の光のシミュレート
+    pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale);
+    pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale);
+    pCtx.fillStyle = "rgba(0, 255, 150, 0.4)";
     pCtx.fillRect(-5 * scale, 2 * scale, 3 * scale, 2 * scale);
     pCtx.fillRect(2 * scale, 2 * scale, 3 * scale, 2 * scale);
 
-    // --- 4. 左右の可動式ドライブポッド（外殻エンジンユニット） ---
-    // アニメーション変数 podExtension（0.0〜1.0）に応じて横にせり出す
     let extOffset = podExtension * 12 * scale;
-
     pCtx.fillStyle = colorPodUnit;
     pCtx.strokeStyle = colorBodyDark;
     
-    // 左側ドライブポッド
     pCtx.save();
     pCtx.translate(-32 * scale - extOffset, 0);
-    pCtx.beginPath();
-    pCtx.moveTo(0, -10 * scale);
-    pCtx.lineTo(-6 * scale, -5 * scale);
-    pCtx.lineTo(-6 * scale, 12 * scale);
-    pCtx.lineTo(0, 8 * scale);
-    pCtx.closePath();
-    pCtx.fill(); pCtx.stroke();
-    // ポッド内の黄色い発光スリット
-    if(isThrusting) {
-        pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`;
-        pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale);
-    }
+    pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(-6 * scale, -5 * scale); pCtx.lineTo(-6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale); }
     pCtx.restore();
 
-    // 右側ドライブポッド
     pCtx.save();
     pCtx.translate(32 * scale + extOffset, 0);
-    pCtx.beginPath();
-    pCtx.moveTo(0, -10 * scale);
-    pCtx.lineTo(6 * scale, -5 * scale);
-    pCtx.lineTo(6 * scale, 12 * scale);
-    pCtx.lineTo(0, 8 * scale);
-    pCtx.closePath();
-    pCtx.fill(); pCtx.stroke();
-    // ポッド内の黄色い発光スリット
-    if(isThrusting) {
-        pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`;
-        pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale);
-    }
+    pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(6 * scale, -5 * scale); pCtx.lineTo(6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale); }
     pCtx.restore();
 
-    // 駆動時（ポッド展開時）の青白い後方排気エフェクト
     if(isThrusting && podExtension > 0.8) {
         let fl = 15 + Math.sin(pjFrame) * 4;
         let pGrad = pCtx.createLinearGradient(0, 10 * scale, 0, (10 + fl) * scale);
@@ -695,7 +619,7 @@ function drawStargateJumper(cx, cy) {
 
 
 /* ====================================================================
-   🔄 メインループとオーディオルーパー統合
+   🔄 アニメーション管理 ＆ オーディオプレイヤーロジック
    ==================================================================== */
 function masterGameLoop() {
     if (activeHole) { updateHolePhysics(); drawHoleGame(); }
@@ -708,24 +632,26 @@ masterGameLoop();
 
 const picker = document.getElementById("picker"), player = document.getElementById("player"), statusEl = document.getElementById("status");
 const playBtn = document.getElementById("playBtn"), seekbarProgress = document.getElementById("seekbarProgress"), seekbarHandle = document.getElementById("seekbarHandle");
-const currentTimeEl = document.getElementById("currentTime"), durationTimeEl = document.getElementById("durationTime"), loadingOverlay = document.getElementById("loadingOverlay");
+const currentTimeEl = document.getElementById("currentTime"), durationTimeEl = document.getElementById("durationTime");
 let currentUrl = null;
 
-window.addEventListener("load", () => { setTimeout(() => { loadingOverlay.classList.remove("active"); }, 400); });
+if(picker) {
+    picker.addEventListener("change", () => {
+        const file = picker.files[0]; if(!file) return;
+        if(currentUrl) URL.revokeObjectURL(currentUrl); currentUrl = URL.createObjectURL(file);
+        player.src = currentUrl; player.load(); statusEl.textContent = file.name.toUpperCase();
+        player.addEventListener("loadedmetadata", () => { durationTimeEl.textContent = formatTime(player.duration); }, {once:true});
+    });
+}
 
-picker.addEventListener("change", () => {
-    const file = picker.files[0]; if(!file) return;
-    if(currentUrl) URL.revokeObjectURL(currentUrl); currentUrl = URL.createObjectURL(file);
-    player.src = currentUrl; player.load(); statusEl.textContent = file.name.toUpperCase();
-    player.addEventListener("loadedmetadata", () => { durationTimeEl.textContent = formatTime(player.duration); }, {once:true});
-});
+if(playBtn) {
+    playBtn.addEventListener("click", () => { if(!player.src) return; if(player.paused) { player.play(); playBtn.textContent = "PAUSE"; } else { player.pause(); playBtn.textContent = "PLAY"; } });
+}
 
-playBtn.addEventListener("click", () => { if(!player.src) return; if(player.paused) { player.play(); playBtn.textContent = "PAUSE"; } else { player.pause(); playBtn.textContent = "PLAY"; } });
 function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), sec=Math.floor(s%60); return String(m).padStart(2,'0')+":"+String(sec).padStart(2,'0'); }
-player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); });
+if(player) {
+    player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
 }
 </script>
 </body>
