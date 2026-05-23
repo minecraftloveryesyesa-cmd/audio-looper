@@ -95,15 +95,6 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 
 <div class="side-drawer" id="sideDrawer">
     <div class="drawer-header"><h2 class="drawer-title">AL&G ARCADE</h2><button class="close-btn" id="closeDrawer">&times;</button></div>
-    
-    <div style="margin-bottom: 20px; padding: 12px; background: #15151e; border: 1px solid #222230; border-radius: 12px; text-align: left;">
-        <label for="secretCodeInput" style="font-size: 10px; color: #8e8e93; display: block; margin-bottom: 6px; font-weight: bold; letter-spacing: 1px;">SECRET CODE</label>
-        <div style="display: flex; gap: 8px;">
-            <input type="text" id="secretCodeInput" placeholder="ENTER CODE..." style="flex: 1; padding: 8px; font-size: 12px; background: #09090d; color: #fff; border: 1px solid #2c2c3e; border-radius: 6px; box-sizing: border-box; outline: none;">
-            <button id="secretCodeBtn" style="padding: 8px 14px; font-size: 12px; background: #bf5af2; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">OK</button>
-        </div>
-    </div>
-
     <button class="game-launch-btn holeio" id="launchHoleViewBtn">PLAY HOLE.IO</button>
     <button class="game-launch-btn lastwar" id="launchLastWarViewBtn">PLAY LAST WAR</button>
     <button class="game-launch-btn breaker" id="launchBreakerViewBtn">BLOCK BREAKER</button>
@@ -344,7 +335,7 @@ startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER
+   🛸 GAME 4: PADDLE JUMPER (スターゲイト機体精密再現・3D空間飛行)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
 let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
@@ -527,20 +518,102 @@ function drawPuddleGame() {
 }
 
 function drawStargateJumper(cx, cy) {
-    let baseZ = 35; let pt = project(ship3D.x, ship3D.y + 10, baseZ, cx, cy); let scale = pt.scale * 0.42; 
-    pCtx.save(); pCtx.translate(pt.x, pt.y); pCtx.rotate(ship3D.rotZ); pCtx.transform(1, 0, 0, 1 - Math.abs(ship3D.rotX), 0, 0);
-    let colorBodyDark = "#29332a", colorBodyBase = "#4a594c", colorBodyLight = "#697a6b", colorWindowFrame = "#524b3e", colorInside = "#131714", colorPodUnit = "#3d473f";
-    let bodyGrad = pCtx.createLinearGradient(-35 * scale, 0, 35 * scale, 0); bodyGrad.addColorStop(0, colorBodyDark); bodyGrad.addColorStop(0.2, colorBodyBase); bodyGrad.addColorStop(0.5, colorBodyLight); bodyGrad.addColorStop(0.8, colorBodyBase); bodyGrad.addColorStop(1, colorBodyDark);
-    pCtx.fillStyle = bodyGrad; pCtx.strokeStyle = colorBodyDark; pCtx.lineWidth = 1.5;
-    pCtx.beginPath(); pCtx.moveTo(-32 * scale, 15 * scale); pCtx.lineTo(-32 * scale, -10 * scale); pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale); pCtx.lineTo(32 * scale, 15 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
-    pCtx.strokeStyle = "rgba(20, 30, 22, 0.45)"; pCtx.lineWidth = 1; pCtx.beginPath(); pCtx.moveTo(-20 * scale, -24 * scale); pCtx.lineTo(-20 * scale, 15 * scale); pCtx.moveTo(20 * scale, -24 * scale); pCtx.lineTo(20 * scale, 15 * scale); pCtx.moveTo(-32 * scale, -5 * scale); pCtx.lineTo(32 * scale, -5 * scale); pCtx.moveTo(-32 * scale, 5 * scale); pCtx.lineTo(32 * scale, 5 * scale); pCtx.stroke();
-    pCtx.fillStyle = colorWindowFrame; pCtx.beginPath(); pCtx.moveTo(-24 * scale, 10 * scale); pCtx.lineTo(-24 * scale, -5 * scale); pCtx.bezierCurveTo(-24 * scale, -22 * scale, 24 * scale, -22 * scale, 24 * scale, -5 * scale); pCtx.lineTo(24 * scale, 10 * scale); pCtx.closePath(); pCtx.fill();
-    pCtx.fillStyle = colorInside; pCtx.beginPath(); pCtx.moveTo(-21 * scale, 8 * scale); pCtx.lineTo(-21 * scale, -4 * scale); pCtx.bezierCurveTo(-21 * scale, -19 * scale, 21 * scale, -19 * scale, 21 * scale, -4 * scale); pCtx.lineTo(21 * scale, 8 * scale); pCtx.closePath(); pCtx.fill();
-    pCtx.fillStyle = "#333b35"; pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale); pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale); pCtx.fillStyle = "rgba(0, 255, 150, 0.4)"; pCtx.fillRect(-5 * scale, 2 * scale, 3 * scale, 2 * scale); pCtx.fillRect(2 * scale, 2 * scale, 3 * scale, 2 * scale);
-    let extOffset = podExtension * 12 * scale; pCtx.fillStyle = colorPodUnit; pCtx.strokeStyle = colorBodyDark;
-    pCtx.save(); pCtx.translate(-32 * scale - extOffset, 0); pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(-6 * scale, -5 * scale); pCtx.lineTo(-6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke(); if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale); } pCtx.restore();
-    pCtx.save(); pCtx.translate(32 * scale + extOffset, 0); pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(6 * scale, -5 * scale); pCtx.lineTo(6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke(); if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale); } pCtx.restore();
-    if(isThrusting && podExtension > 0.8) { let fl = 15 + Math.sin(pjFrame) * 4; let pGrad = pCtx.createLinearGradient(0, 10 * scale, 0, (10 + fl) * scale); pGrad.addColorStop(0, "rgba(0, 190, 255, 0.7)"); pGrad.addColorStop(1, "rgba(0, 80, 255, 0)"); pCtx.fillStyle = pGrad; pCtx.fillRect(-37 * scale, 10 * scale, 4 * scale, fl * scale); pCtx.fillRect(33 * scale, 10 * scale, 4 * scale, fl * scale); }
+    let baseZ = 35;
+    let pt = project(ship3D.x, ship3D.y + 10, baseZ, cx, cy); 
+    let scale = pt.scale * 0.42; 
+
+    pCtx.save();
+    pCtx.translate(pt.x, pt.y);
+    pCtx.rotate(ship3D.rotZ);
+    pCtx.transform(1, 0, 0, 1 - Math.abs(ship3D.rotX), 0, 0);
+
+    let colorBodyDark = "#29332a";
+    let colorBodyBase = "#4a594c";
+    let colorBodyLight = "#697a6b";
+    let colorWindowFrame = "#524b3e";
+    let colorInside = "#131714";
+    let colorPodUnit = "#3d473f";
+
+    let bodyGrad = pCtx.createLinearGradient(-35 * scale, 0, 35 * scale, 0);
+    bodyGrad.addColorStop(0, colorBodyDark);
+    bodyGrad.addColorStop(0.2, colorBodyBase);
+    bodyGrad.addColorStop(0.5, colorBodyLight);
+    bodyGrad.addColorStop(0.8, colorBodyBase);
+    bodyGrad.addColorStop(1, colorBodyDark);
+
+    pCtx.fillStyle = bodyGrad;
+    pCtx.strokeStyle = colorBodyDark;
+    pCtx.lineWidth = 1.5;
+
+    pCtx.beginPath();
+    pCtx.moveTo(-32 * scale, 15 * scale);
+    pCtx.lineTo(-32 * scale, -10 * scale);
+    pCtx.bezierCurveTo(-32 * scale, -32 * scale, 32 * scale, -32 * scale, 32 * scale, -10 * scale);
+    pCtx.lineTo(32 * scale, 15 * scale);
+    pCtx.closePath();
+    pCtx.fill();
+    pCtx.stroke();
+
+    pCtx.strokeStyle = "rgba(20, 30, 22, 0.45)";
+    pCtx.lineWidth = 1;
+    pCtx.beginPath();
+    pCtx.moveTo(-20 * scale, -24 * scale); pCtx.lineTo(-20 * scale, 15 * scale);
+    pCtx.moveTo(20 * scale, -24 * scale); pCtx.lineTo(20 * scale, 15 * scale);
+    pCtx.moveTo(-32 * scale, -5 * scale); pCtx.lineTo(32 * scale, -5 * scale);
+    pCtx.moveTo(-32 * scale, 5 * scale); pCtx.lineTo(32 * scale, 5 * scale);
+    pCtx.stroke();
+
+    pCtx.fillStyle = colorWindowFrame;
+    pCtx.beginPath();
+    pCtx.moveTo(-24 * scale, 10 * scale);
+    pCtx.lineTo(-24 * scale, -5 * scale);
+    pCtx.bezierCurveTo(-24 * scale, -22 * scale, 24 * scale, -22 * scale, 24 * scale, -5 * scale);
+    pCtx.lineTo(24 * scale, 10 * scale);
+    pCtx.closePath();
+    pCtx.fill();
+
+    pCtx.fillStyle = colorInside;
+    pCtx.beginPath();
+    pCtx.moveTo(-21 * scale, 8 * scale);
+    pCtx.lineTo(-21 * scale, -4 * scale);
+    pCtx.bezierCurveTo(-21 * scale, -19 * scale, 21 * scale, -19 * scale, 21 * scale, -4 * scale);
+    pCtx.lineTo(21 * scale, 8 * scale);
+    pCtx.closePath();
+    pCtx.fill();
+
+    pCtx.fillStyle = "#333b35";
+    pCtx.fillRect(-12 * scale, -2 * scale, 5 * scale, 6 * scale);
+    pCtx.fillRect(7 * scale, -2 * scale, 5 * scale, 6 * scale);
+    pCtx.fillStyle = "rgba(0, 255, 150, 0.4)";
+    pCtx.fillRect(-5 * scale, 2 * scale, 3 * scale, 2 * scale);
+    pCtx.fillRect(2 * scale, 2 * scale, 3 * scale, 2 * scale);
+
+    let extOffset = podExtension * 12 * scale;
+    pCtx.fillStyle = colorPodUnit;
+    pCtx.strokeStyle = colorBodyDark;
+    
+    pCtx.save();
+    pCtx.translate(-32 * scale - extOffset, 0);
+    pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(-6 * scale, -5 * scale); pCtx.lineTo(-6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(-4 * scale, -2 * scale, 2 * scale, 10 * scale); }
+    pCtx.restore();
+
+    pCtx.save();
+    pCtx.translate(32 * scale + extOffset, 0);
+    pCtx.beginPath(); pCtx.moveTo(0, -10 * scale); pCtx.lineTo(6 * scale, -5 * scale); pCtx.lineTo(6 * scale, 12 * scale); pCtx.lineTo(0, 8 * scale); pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    if(isThrusting) { pCtx.fillStyle = `rgba(255, 180, 0, ${0.7 + Math.sin(pjFrame*0.5)*0.3})`; pCtx.fillRect(2 * scale, -2 * scale, 2 * scale, 10 * scale); }
+    pCtx.restore();
+
+    if(isThrusting && podExtension > 0.8) {
+        let fl = 15 + Math.sin(pjFrame) * 4;
+        let pGrad = pCtx.createLinearGradient(0, 10 * scale, 0, (10 + fl) * scale);
+        pGrad.addColorStop(0, "rgba(0, 190, 255, 0.7)");
+        pGrad.addColorStop(1, "rgba(0, 80, 255, 0)");
+        pCtx.fillStyle = pGrad;
+        pCtx.fillRect(-37 * scale, 10 * scale, 4 * scale, fl * scale);
+        pCtx.fillRect(33 * scale, 10 * scale, 4 * scale, fl * scale);
+    }
+
     pCtx.restore();
 }
 
@@ -579,56 +652,6 @@ function formatTime(s) { if(isNaN(s)) return "00:00"; let m=Math.floor(s/60), se
 
 if(player) {
     player.addEventListener("timeupdate", () => { currentTimeEl.textContent = formatTime(player.currentTime); let pct = (player.currentTime/player.duration)*100; seekbarProgress.style.width = pct+"%"; seekbarHandle.style.left = pct+"%"; });
-}
-
-
-/* ====================================================================
-   🔑 隠しコード判定ロジック (Rodney-Private -> Insane slowed.wav)
-   ==================================================================== */
-const secretInput = document.getElementById("secretCodeInput");
-const secretBtn = document.getElementById("secretCodeBtn");
-
-// 同じ階層フォルダに音声を配置した場合はファイル名のみで読み込みます
-const PRIVATE_TRACK_URL = "Insane slowed.wav"; 
-
-function checkSecretCode() {
-    if (!secretInput) return;
-    
-    // 入力された文字の前後の空白をカットして正確に判定
-    const code = secretInput.value.trim();
-    
-    if (code === "Rodney-Private") {
-        player.src = PRIVATE_TRACK_URL;
-        player.load();
-        
-        // プレイヤーのステータス画面を更新
-        statusEl.textContent = "🔒 INSANE SLOWED.WAV LOADED";
-        
-        player.addEventListener("loadedmetadata", () => { 
-            durationTimeEl.textContent = formatTime(player.duration); 
-        }, {once:true});
-        
-        // 入力欄をクリアしてメニューを自動で閉じる
-        secretInput.value = "";
-        alert("隠しトラック「Insane slowed.wav」をロードしました！");
-        closeMenu(); 
-    } else if (code !== "") {
-        alert("コードが正しくありません。");
-    }
-}
-
-// 決定ボタンクリックで実行
-if (secretBtn) {
-    secretBtn.addEventListener("click", checkSecretCode);
-}
-
-// キーボードのEnterキーでも実行できるように設定
-if (secretInput) {
-    secretInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            checkSecretCode();
-        }
-    });
 }
 </script>
 </body>
