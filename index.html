@@ -350,12 +350,11 @@ startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER 3D (完全リアルタイム計算描画版)
+   🛸 GAME 4: PADDLE JUMPER 3D (グラフィックスドット完全再現版)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
 let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
 
-// 完全3D変数（すべてプログラム内のリアルタイム数値です。動画・画像は一切使いません）
 let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; 
 let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
 let star3D = [], objects3D = [], drones3D = [];
@@ -369,7 +368,6 @@ function initPuddleGame() {
     targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
     star3D = []; objects3D = []; drones3D = []; isThrusting = false; podAnimationFactor = 1.0;
 
-    // 宇宙の3D粒子点を生成
     for(let i=0; i<100; i++) {
         star3D.push({ x: (Math.random()-0.5)*1000, y: (Math.random()-0.5)*1000, z: Math.random()*800 + 50 });
     }
@@ -381,7 +379,7 @@ function spawnPJObject(type, x, y, z) {
     objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 70 : 20 });
 }
 
-// 【操作バグ修正】指のスワイプ方向にそのまま追従（上が上、下が下へ動く直感物理）
+// 【操作直感化】スワイプのズレをダイレクトに機体へ反映
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
     let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY };
@@ -391,10 +389,10 @@ pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
     let t = e.touches[0];
     let dx = t.clientX - pjTouchStart.x;
-    let dy = t.clientY - pjTouchStart.y; // 符号変換により、直感的なカメラ連動を実現
+    let dy = t.clientY - pjTouchStart.y;
 
     targetShip.x = Math.max(-120, Math.min(120, dx * 0.8));
-    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上スワイプ＝機体も上へ！
+    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上にスワイプしたら上に、下にスワイプしたら下に行く
     targetShip.rotZ = dx * 0.004;  
     targetShip.rotX = dy * 0.002; 
 }, {passive:true});
@@ -404,7 +402,6 @@ pCanvas.addEventListener("touchend", () => {
     pjTouchStart = null;
 });
 
-// 加速ボタン（長押し対応）
 const thrustBtn = document.getElementById("btnThrust");
 ['touchstart', 'mousedown'].forEach(evt => {
     thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = true; });
@@ -417,13 +414,11 @@ function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return;
     pjFrame++;
 
-    // プレイヤーの入力をミリ秒単位でイージング補間（リアルタイム描画）
     ship3D.x += (targetShip.x - ship3D.x) * 0.12;
     ship3D.y += (targetShip.y - ship3D.y) * 0.12;
     ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.15;
     ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.15;
 
-    // 羽（ドライブポッド）のリアルタイム開閉変形計算
     if(isThrusting) {
         podAnimationFactor += (0.0 - podAnimationFactor) * 0.2; 
     } else {
@@ -431,41 +426,36 @@ function updatePuddlePhysics() {
     }
     let speed = isThrusting ? 14.0 : 5.0;
 
-    // 【全自動ドローン・インターセプター】定期的に、索敵圏内のレイスを捉えて自動ツイン発射！
+    // 【全自動ドローンシステム】索敵・自動追尾弾の射撃周期
     if(pjFrame % 45 === 0) {
         let targets = objects3D.filter(o => o.type === 'wraith');
         if(targets.length > 0) {
-            drones3D.push({ x: ship3D.x - 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
-            drones3D.push({ x: ship3D.x + 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
+            drones3D.push({ x: ship3D.x - 22, y: ship3D.y + 10, z: 40, vx: 0, vy: 0, vz: 16 });
+            drones3D.push({ x: ship3D.x + 22, y: ship3D.y + 10, z: 40, vx: 0, vy: 0, vz: 16 });
         }
     }
 
     let camX = ship3D.x * 0.06;
     let camY = ship3D.y * 0.06;
 
-    // 3D背景のリアルタイム相対スクロール
     star3D.forEach(s => {
         s.z -= speed; s.x -= camX; s.y -= camY;
         if(s.z <= 10) { s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*1000; s.z = 800; }
     });
 
-    // 【全自動追尾】ドローンのホーミングベクトルリアルタイム計算
     for(let i=drones3D.length-1; i>=0; i--) {
         let d = drones3D[i]; d.z += d.vz; d.x += d.vx - camX; d.y += d.vy - camY;
         if(d.z > 800) { drones3D.splice(i,1); continue; }
         
         let targets = objects3D.filter(o => o.type === 'wraith');
         if(targets.length > 0) {
-            // 最も近いエネミー座標を毎フレーム追従計算
             d.vx += (targets[0].x - d.x) * 0.05; d.vy += (targets[0].y - d.y) * 0.05;
         }
     }
 
-    // 衝突判定と3D座標の再配置
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
 
-        // ドローンと敵のヒット判定
         for(let j=drones3D.length-1; j>=0; j--) {
             let d = drones3D[j];
             if(Math.hypot(o.x-d.x, o.y-d.y, o.z-d.z) < o.r + 12) {
@@ -475,7 +465,6 @@ function updatePuddlePhysics() {
             }
         }
 
-        // 自機との衝突判定
         if(o.z <= 40 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
             if(dist < o.r + 15) {
@@ -499,7 +488,6 @@ function updatePuddlePhysics() {
     if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
 }
 
-// 3D透視投影数学エンジン（三次元のxyzを二次元のxyに変換）
 function project(x, y, z, cx, cy) {
     let fov = 220; if(z <= 0) z = 1;
     return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z };
@@ -509,7 +497,6 @@ function drawPuddleGame() {
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
     let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
 
-    // 1. 星群（すべてリアルタイムの点）
     pCtx.fillStyle = "#ffffff";
     star3D.forEach(s => {
         let pt = project(s.x, s.y, s.z, cx, cy);
@@ -519,13 +506,11 @@ function drawPuddleGame() {
         }
     });
 
-    // 2. ドローン弾
     drones3D.forEach(d => {
         let pt = project(d.x, d.y, d.z, cx, cy);
-        pCtx.fillStyle = "#00f2fe"; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, Math.max(2.5, pt.scale*2.2), 0, Math.PI*2); pCtx.fill();
+        pCtx.fillStyle = "#ffcc00"; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, Math.max(3, pt.scale*2.5), 0, Math.PI*2); pCtx.fill();
     });
 
-    // 3. 敵・ゲイトの3Dポリゴンレンダリング
     objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
         let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.6;
         if(pt.x < -100 || pt.x > pCanvas.width+100 || pt.y < -100 || pt.y > pCanvas.height+100) return;
@@ -542,16 +527,14 @@ function drawPuddleGame() {
         }
     });
 
-    // 4. 【自機ジャンパー】3Dワイヤーメッシュをリアルタイムにパス描画
+    // 🛸 画像から完全再現されたドット機体をリアルタイム描画
     draw3DPlayerJumper(cx, cy);
 
-    // HUDテキスト
     pCtx.fillStyle = "#00f2fe"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
     pCtx.fillText("🛡️ SHIELD: " + energyPJ + "%", 15, 25);
     pCtx.fillStyle = "#30d158"; pCtx.fillText("🤖 AUTO DRONE: ONLINE", 15, 43);
 
     pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
-    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.font = "italic bold 11px sans-serif"; pCtx.fillText("⚡PODS RETRACTED", pCanvas.width - 15, 43); }
 
     if(gameOverPJ) {
         pCtx.fillStyle = "rgba(5,5,12,0.96)"; pCtx.fillRect(0,0,pCanvas.width,pCanvas.height);
@@ -560,45 +543,68 @@ function drawPuddleGame() {
     }
 }
 
+// 🎨 アップロードされた画像のジャンパーをドット比率ベースで完全再現する描画エンジン
 function draw3DPlayerJumper(cx, cy) {
     let baseZ = 35;
-    let pt = project(ship3D.x, ship3D.y + 20, baseZ, cx, cy); 
-    let scale = pt.scale * 0.28;
+    let pt = project(ship3D.x, ship3D.y + 15, baseZ, cx, cy); 
+    let baseScale = pt.scale * 0.18; // 画像のドット感を再現する拡大率
 
     pCtx.save();
     pCtx.translate(pt.x, pt.y);
-    pCtx.rotate(ship3D.rotZ); // 横スワイプによるロール回転
+    pCtx.rotate(ship3D.rotZ); 
 
-    pCtx.strokeStyle = "#00f2fe"; pCtx.lineWidth = 2;
-    pCtx.fillStyle = "rgba(10, 24, 40, 0.85)";
-    pCtx.shadowBlur = 8; pCtx.shadowColor = "#00f2fe";
+    // ドットを描画するヘルパー関数
+    function drawDot(rx, ry, rw, rh, color) {
+        pCtx.fillStyle = color;
+        pCtx.fillRect(rx * baseScale, ry * baseScale, rw * baseScale, rh * baseScale);
+    }
 
-    // 船体中央カプセル
-    let w = 45 * scale, h = 26 * scale;
-    pCtx.beginPath();
-    pCtx.moveTo(-w, -h/2); pCtx.lineTo(w, -h/2);
-    pCtx.lineTo(w + 10, h/2); pCtx.lineTo(-w - 10, h/2);
-    pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    // 1. 左右の大きな黄色いウイング（斜めカット・ポッドアニメーション連動）
+    let wingOffset = (1.0 - podAnimationFactor) * 8; // 変形時のウイング引き込み
+    
+    // 左ウイング（黄色）
+    drawDot(-32 - wingOffset, 0, 8, 4, "#ffd100");
+    drawDot(-28 - wingOffset, -4, 12, 4, "#ffd100");
+    drawDot(-24 - wingOffset, -8, 8, 4, "#ffd100");
+    drawDot(-20 - wingOffset, -12, 6, 4, "#ffd100");
+    // ウイング先端の黒いフィン
+    drawDot(-34 - wingOffset, -2, 2, 6, "#1a1a1a");
 
-    // コックピット風シールド
-    pCtx.fillStyle = "rgba(0, 242, 254, 0.4)";
-    pCtx.beginPath();
-    pCtx.moveTo(-w+5, -h/2+3); pCtx.lineTo(w-5, -h/2+3);
-    pCtx.lineTo(w, 0); pCtx.lineTo(-w, 0);
-    pCtx.closePath(); pCtx.fill(); pCtx.stroke();
+    // 右ウイング（黄色）
+    drawDot(24 + wingOffset, 0, 8, 4, "#ffd100");
+    drawDot(16 + wingOffset, -4, 12, 4, "#ffd100");
+    drawDot(16 + wingOffset, -8, 8, 4, "#ffd100");
+    drawDot(14 + wingOffset, -12, 6, 4, "#ffd100");
+    // ウイング先端の黒いフィン
+    drawDot(32 + wingOffset, -2, 2, 6, "#1a1a1a");
 
-    // 左右の稼働ポッド（加速状態によって瞬時に数値が変化し、グラフィックが追従します）
-    let podOffset = 18 * podAnimationFactor * scale; 
-    pCtx.fillStyle = "rgba(15, 15, 25, 0.9)";
-    pCtx.shadowBlur = 0;
+    // 2. メインの赤いコックピットカプセル
+    // 特徴的な上部・下部の赤いドット外装
+    drawDot(-14, -14, 28, 4, "#e02424"); // 上フレーム
+    drawDot(-16, -10, 32, 6, "#e02424"); // メイン横フレーム
+    drawDot(-14, -4, 28, 12, "#ff3b30"); // コックピット下部ボディ（明るい赤）
+    drawDot(-10, 8, 20, 6, "#c01c1c");  // 底部スタビライザー
+    drawDot(-6, 14, 12, 4, "#8a1010");  // ノズル結合部
 
-    // 左ポッド
-    pCtx.beginPath(); pCtx.rect(-w - 8 - podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
-    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(-w - 6 - podOffset, h/1.5, 4*scale, 5); }
+    // 3. 中央の青いキャノピー（風防ガラス）
+    drawDot(-8, -10, 16, 6, "#00a2ff"); // 明るいスカイブルー
+    drawDot(-6, -4, 12, 4, "#0072ff");  // 濃いブルーのグラデーション
 
-    // 右ポッド
-    pCtx.beginPath(); pCtx.rect(w + podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
-    if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(w + 2 + podOffset, h/1.5, 4*scale, 5); }
+    // 4. ドライブポッド・スラスター（左右のグレーパーツ）
+    drawDot(-18, -4, 4, 10, "#7a7a85"); // 左ポッド
+    drawDot(14, -4, 4, 10, "#7a7a85");  // 右ポッド
+
+    // 加速時のバーニアエフェクト（画像のブースターを再現）
+    if(isThrusting) {
+        let fl = (pjFrame % 2 === 0) ? 14 : 8;
+        // 左・右エンジンから吹き出すツインプラズマ炎
+        pCtx.fillStyle = "#ff9f0a";
+        pCtx.fillRect(-16 * baseScale, 14 * baseScale, 4 * baseScale, fl * baseScale);
+        pCtx.fillRect(12 * baseScale, 14 * baseScale, 4 * baseScale, fl * baseScale);
+        pCtx.fillStyle = "#ffcc00";
+        pCtx.fillRect(-15 * baseScale, 14 * baseScale, 2 * baseScale, (fl*0.6) * baseScale);
+        pCtx.fillRect(13 * baseScale, 14 * baseScale, 2 * baseScale, (fl*0.6) * baseScale);
+    }
 
     pCtx.restore();
 }
