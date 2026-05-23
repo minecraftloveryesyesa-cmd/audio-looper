@@ -78,7 +78,7 @@ input[type="file"] { width: 100%; padding: 14px; font-size: 14px; background: #1
 .bottom-action-btn { margin-top: 10px; width: 320px; padding: 12px; font-size: 14px; color: #fff; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; font-weight: bold; cursor: pointer; }
 
 #holeGameCanvas { background: #1a1c24; width: 340px; height: 460px; display: block; }
-#lastWarCanvas { background: linear-gradient(180deg, #152212 0%, #080c07 100%); width: 320px; height: 480px; display: block; }
+#lastWarCanvas { background: #9fa8a3; width: 320px; height: 480px; display: block; } /* 背景をアスファルト風グレーに変更 */
 #breakerCanvas { background: #07070a; width: 340px; height: 380px; display: block; }
 #puddleCanvas { background: #020305; width: 340px; height: 370px; display: block; }
 
@@ -177,7 +177,6 @@ const closeMenu = () => { sideDrawer.classList.remove("open"); drawerOverlay.cla
 closeDrawer.addEventListener("click", closeMenu);
 drawerOverlay.addEventListener("click", closeMenu);
 
-// EXITボタン押下時にフラグを折り、残像を残さず確実にクリア
 document.querySelectorAll(".generic-exit").forEach(btn => {
     btn.addEventListener("click", () => {
         activeHole = false; activeLW = false; activeBB = false; activePJ = false;
@@ -194,7 +193,7 @@ document.getElementById("launchPuddleBtn").addEventListener("click", () => { clo
 
 
 /* ====================================================================
-   🕳️ GAME 1: HOLE.IO 
+   🕳️ GAME 1: HOLE.IO
    ==================================================================== */
 const hCanvas = document.getElementById("holeGameCanvas"), hCtx = hCanvas.getContext("2d"), startHoleBtn = document.getElementById("startHoleGameBtn");
 let scoreHole = 0, timeHole = 60, gameOverHole = true, holeFrame = 0;
@@ -273,26 +272,29 @@ startHoleBtn.addEventListener("click", () => initHoleGame());
 
 
 /* ====================================================================
-   🔥 GAME 2: LAST WAR 
+   🔥 GAME 2: LAST WAR (画像再現・超物量ハクスラ仕様)
    ==================================================================== */
 const lwCanvas = document.getElementById("lastWarCanvas"), lwCtx = lwCanvas.getContext("2d"), startLwBtn = document.getElementById("startLastWarBtn");
-let scoreLW = 0, soldierCount = 5, lwFrame = 0, gameOverLW = true, playerX = 160;
-let bullets = [], enemies = [], gates = [];
+let scoreLW = 0, soldierCount = 10, lwFrame = 0, gameOverLW = true, playerX = 160;
+let bullets = [], enemies = [], gates = [], particles = [];
 
 function initLastWar() {
-    scoreLW=0; soldierCount=5; lwFrame=0; gameOverLW=false; playerX=160; bullets=[]; enemies=[]; gates=[]; activeLW=true;
-    spawnLwGate(-100); spawnLwGate(-300);
+    scoreLW=0; soldierCount=12; lwFrame=0; gameOverLW=false; playerX=160; bullets=[]; enemies=[]; gates=[]; particles=[]; activeLW=true;
+    spawnLwGate(-140); spawnLwGate(-360);
     requestAnimationFrame(lastWarLoop);
 }
+
 function spawnLwGate(yPos) {
+    // 右側の壁に寄った青い大量追加ゲートのビジュアル再現
     gates.push(
-        {x:10,  y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?5:2},
-        {x:170, y:yPos, w:140, type:Math.random()>0.4?'add':'mult', v:Math.random()>0.5?3:2}
+        {x:10,  y:yPos, w:130, type:'add', v:Math.random()>0.5?15:5, active:true},
+        {x:160, y:yPos, w:150, type:'add', v:Math.random()>0.5?30:10, active:true} // 青い高倍率ゲートを右側に配置
     );
 }
+
 function handleLwMove(clientX) {
     let r = lwCanvas.getBoundingClientRect(); playerX = (clientX - r.left) * (320/r.width);
-    playerX = Math.max(15, Math.min(305, playerX));
+    playerX = Math.max(25, Math.min(295, playerX));
 }
 lwCanvas.addEventListener("touchstart", (e) => { handleLwMove(e.touches[0].clientX); }, {passive:true});
 lwCanvas.addEventListener("touchmove", (e) => { handleLwMove(e.touches[0].clientX); }, {passive:true});
@@ -301,50 +303,146 @@ function lastWarLoop() {
     if (!activeLW) return;
     if (!gameOverLW) {
         lwFrame++;
-        if(lwFrame%6===0) { 
-            let count = Math.min(6, Math.ceil(soldierCount/3));
-            for(let i=0; i<count; i++) bullets.push({x: playerX + (i - (count-1)/2)*8, y:430}); 
-        }
-        bullets.forEach((b,i)=> { b.y -= 9; if(b.y<-10) bullets.splice(i,1); });
-        
-        for(let i=gates.length-1; i>=0; i--) {
-            let g = gates[i]; g.y += 2.5;
-            if(g.y > 500) { gates.splice(i,1); if(gates.length<2) spawnLwGate(-50); continue; }
-            if(g.y>415 && g.y<445 && playerX>g.x && playerX<g.x+g.w) {
-                soldierCount = g.type==='add'? soldierCount+g.v : soldierCount*g.v;
-                gates = gates.filter(item => item.y !== g.y);
-                if(gates.length<2) spawnLwGate(-100);
-                break;
-            }
-        }
-        
-        if(lwFrame%20===0) enemies.push({x:Math.random()*260+30, y:-20, hp:Math.floor(Math.random()*12)+3});
-        for(let i=enemies.length-1; i>=0; i--) {
-            let e = enemies[i]; e.y += 2.0;
-            if(e.y > 450) { gameOverLW=true; enemies=[]; return; }
-            for(let bi=bullets.length-1; bi>=0; bi--) {
-                if(Math.hypot(bullets[bi].x-e.x, bullets[bi].y-e.y)<16) {
-                    e.hp--; bullets.splice(bi,1);
-                    if(e.hp<=0) { enemies.splice(i,1); scoreLW+=15; break; }
+
+        // 🚀 画像再現：兵士の密集度に合わせて金色のストリーク弾丸をガガガガッと超高速一斉連射
+        if(lwFrame % 3 === 0) { 
+            let columns = Math.min(10, Math.ceil(soldierCount / 3)); // 横幅の弾幕数
+            let density = soldierCount > 25 ? 2 : 1; // 兵士が多いと2重連射
+            for(let d=0; d<density; d++) {
+                for(let i=0; i<columns; i++) {
+                    let spreadX = playerX + (i - (columns-1)/2) * 6 + (Math.random() - 0.5) * 4;
+                    bullets.push({x: spreadX, y: 410 - (d*10)});
                 }
             }
         }
+        // 金色の縦長ラインレーザー弾の移動
+        bullets.forEach((b,i)=> { b.y -= 14; if(b.y<-20) bullets.splice(i,1); });
+        
+        // ゲート通過処理
+        for(let i=0; i<gates.length; i++) {
+            let g = gates[i]; g.y += 3.0;
+            if(g.active && g.y>400 && g.y<435 && playerX>g.x && playerX<g.x+g.w) {
+                soldierCount += g.v;
+                let currentY = g.y;
+                gates.forEach(item => { if(Math.abs(item.y - currentY) < 15) item.active = false; });
+                break;
+            }
+        }
+        if(gates.length > 0 && gates[0].y > 500) { gates.splice(0,2); spawnLwGate(-120); }
+        
+        // 🧟 画像再現：赤い帽子の敵ゾンビが「超高密度な塊」のウェーブで画面上部を埋め尽くすように出現
+        if(lwFrame % 12 === 0) {
+            let waveSize = Math.floor(Math.random() * 6) + 8; // 一度に8〜14体まとめて出現
+            for(let w=0; w<waveSize; w++) {
+                enemies.push({
+                    x: Math.random() * 280 + 20, 
+                    y: -20 - (Math.random() * 30), 
+                    hp: Math.floor(Math.random() * 4) + 2,
+                    offsetX: (Math.random() - 0.5) * 0.4
+                });
+            }
+        }
+
+        // 敵の進行と当たり判定（ノックバック＆爆発エフェクト）
+        for(let i=enemies.length-1; i>=0; i--) {
+            let e = enemies[i]; 
+            e.y += 1.4; e.x += e.offsetX; // じわじわと密集しながら進軍
+            
+            if(e.y > 430) { gameOverLW=true; enemies=[]; return; }
+            
+            for(let bi=bullets.length-1; bi>=0; bi--) {
+                if(Math.abs(bullets[bi].x - e.x) < 14 && Math.abs(bullets[bi].y - e.y) < 16) {
+                    e.hp--; 
+                    e.y -= 1.5; // 💥 弾が当たると微ノックバック
+                    bullets.splice(bi,1);
+                    
+                    // 💥 画像再現：ヒット時の黄色いフラッシュ・爆発粒子を生成
+                    if(Math.random() > 0.3) {
+                        particles.push({x: e.x, y: e.y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, size: Math.random()*5+3, alpha: 1.0});
+                    }
+                    
+                    if(e.hp<=0) { 
+                        // 盛大な撃破爆発
+                        for(let p=0; p<6; p++) {
+                            particles.push({x: e.x, y: e.y, vx: (Math.random()-0.5)*7, vy: (Math.random()-0.5)*7, size: Math.random()*6+4, alpha: 1.0});
+                        }
+                        enemies.splice(i,1); scoreLW+=10; break; 
+                    }
+                }
+            }
+        }
+
+        // パーティクルアニメーション
+        particles.forEach((p, index) => {
+            p.x += p.vx; p.y += p.vy; p.alpha -= 0.08;
+            if(p.alpha <= 0) particles.splice(index, 1);
+        });
     }
     
-    lwCtx.clearRect(0,0,320,480);
+    // 背景描写
+    lwCtx.fillStyle = "#8a948f"; lwCtx.fillRect(0,0,320,480);
+    // ガードレール線（画像の右側フェンス風）
+    lwCtx.strokeStyle = "#bcbcbc"; lwCtx.lineWidth = 4; lwCtx.beginPath(); lwCtx.moveTo(310, 0); lwCtx.lineTo(310, 480); lwCtx.stroke();
+
+    // 🟦 青い「＋数字」の計算ゲート（画像右側のレイアウト風に美化）
     gates.forEach(g => { 
-        lwCtx.fillStyle=g.type==='add'?"rgba(0,132,255,0.45)":"rgba(255,159,10,0.45)"; 
-        lwCtx.fillRect(g.x,g.y,g.w,35); lwCtx.fillStyle="#fff"; lwCtx.font="bold 14px monospace"; 
-        lwCtx.fillText((g.type==='add'?'+':'x')+g.v, g.x+g.w/2-10, g.y+22); 
+        if(!g.active) return;
+        lwCtx.fillStyle = "rgba(0, 110, 255, 0.75)"; 
+        lwCtx.fillRect(g.x, g.y, g.w, 32); 
+        lwCtx.strokeStyle = "#ffffff"; lwCtx.lineWidth = 1.5; lwCtx.strokeRect(g.x, g.y, g.w, 32);
+        lwCtx.fillStyle="#fff"; lwCtx.font="bold 15px sans-serif"; 
+        lwCtx.fillText("+ " + g.v, g.x + g.w/2 - 12, g.y + 22); 
     });
-    lwCtx.fillStyle="#ffcc00"; bullets.forEach(b=>lwCtx.fillRect(b.x-2,b.y,4,10));
+
+    // 🚀 画像再現：金色のレーザー風の超高速縦長弾丸
+    lwCtx.fillStyle = "#ffdf00";
+    bullets.forEach(b => {
+        lwCtx.fillStyle = "#ffea70"; lwCtx.fillRect(b.x - 1.5, b.y, 3, 14); // 芯の白い光
+        lwCtx.fillStyle = "#ffaa00"; lwCtx.fillRect(b.x - 2.5, b.y + 4, 5, 8);
+    });
+
+    // 💥 爆発ヒットエフェクトの描画
+    particles.forEach(p => {
+        lwCtx.fillStyle = `rgba(255, ${Math.floor(150 + Math.random()*105)}, 0, ${p.alpha})`;
+        lwCtx.beginPath(); lwCtx.arc(p.x, p.y, p.size, 0, Math.PI*2); lwCtx.fill();
+    });
+
+    // 🧟 画像再現：赤いヘルメット・服を着た超高密度な敵の大群
     enemies.forEach(e=>{ 
-        lwCtx.fillStyle="#ff453a"; lwCtx.beginPath(); lwCtx.arc(e.x,e.y,13,0,Math.PI*2); lwCtx.fill(); 
-        lwCtx.fillStyle="#fff"; lwCtx.font="bold 10px sans-serif"; lwCtx.fillText(e.hp, e.x-4, e.y+3); 
+        // 体体（赤）
+        lwCtx.fillStyle = "#a62424"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y + 4, 11, 0, Math.PI*2); lwCtx.fill(); 
+        // ヘルメット（明るい赤）
+        lwCtx.fillStyle = "#e63946"; lwCtx.beginPath(); lwCtx.arc(e.x, e.y, 10, 0, Math.PI*2); lwCtx.fill(); 
+        // つば部分
+        lwCtx.fillRect(e.x - 11, e.y, 22, 2);
     });
-    lwCtx.fillStyle="#00f2fe"; lwCtx.font="bold 15px sans-serif"; lwCtx.fillText("👥 陸軍大隊: "+soldierCount, playerX-30, 460);
-    lwCtx.fillStyle="#fff"; lwCtx.fillText("SCORE: "+scoreLW, 10, 25);
-    if(gameOverLW) { lwCtx.fillStyle="rgba(0,0,0,0.85)"; lwCtx.fillRect(0,0,320,480); lwCtx.fillStyle="#ff3b30"; lwCtx.font="bold 22px sans-serif"; lwCtx.fillText("MISSION FAILED", 75, 240); }
+
+    // 👥 画像再現：密集する青いヘルメットの自軍兵士集団
+    let sCount = Math.min(30, soldierCount); // 描写上限
+    for(let s=0; s<sCount; s++) {
+        let row = Math.floor(s / 6);
+        let col = s % 6;
+        let sx = playerX + (col - 2.5) * 9 + (row % 2 * 4);
+        let sy = 440 + row * 8;
+        
+        // 体（白・ベージュ）
+        lwCtx.fillStyle = "#e5cbb3"; lwCtx.fillRect(sx - 5, sy, 10, 10);
+        // ズボン（青）
+        lwCtx.fillStyle = "#1d3557"; lwCtx.fillRect(sx - 5, sy + 6, 10, 4);
+        // 青いヘルメット（丸型）
+        lwCtx.fillStyle = "#4ea8de"; lwCtx.beginPath(); lwCtx.arc(sx, sy, 7, 0, Math.PI*2); lwCtx.fill();
+        lwCtx.fillStyle = "#0077b6"; lwCtx.beginPath(); lwCtx.arc(sx, sy - 1, 6, 0, Math.PI*2); lwCtx.fill();
+    }
+
+    // UI情報
+    lwCtx.fillStyle = "#1d3557"; lwCtx.font = "bold 13px sans-serif";
+    lwCtx.fillText("👥 自軍戦力: " + soldierCount, 15, 470);
+    lwCtx.fillStyle = "#000"; lwCtx.font = "bold 15px monospace"; lwCtx.fillText("SCORE: " + scoreLW, 15, 25);
+    
+    if(gameOverLW) { 
+        lwCtx.fillStyle = "rgba(0,0,0,0.85)"; lwCtx.fillRect(0,0,320,480); 
+        lwCtx.fillStyle = "#ff3b30"; lwCtx.font = "bold 24px sans-serif"; lwCtx.fillText("OVERRUN / FAILED", 45, 240); 
+    }
     
     requestAnimationFrame(lastWarLoop);
 }
@@ -352,7 +450,7 @@ startLwBtn.addEventListener("click", () => initLastWar());
 
 
 /* ====================================================================
-   🧱 GAME 3: BLOCK BREAKER 
+   🧱 GAME 3: BLOCK BREAKER
    ==================================================================== */
 const bCanvas = document.getElementById("breakerCanvas"), bCtx = bCanvas.getContext("2d"), startBbBtn = document.getElementById("startBreakerBtn");
 let bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverBB = true;
@@ -426,9 +524,9 @@ pCanvas.addEventListener("touchstart", (e) => {
 pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
     let t = e.touches[0], dx = t.clientX - pjTouchStart.x, dy = t.clientY - pjTouchStart.y;
-    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 0.85));
-    targetShip.y = Math.max(-95, Math.min(95, pjTouchStart.baseShipY + dy * 0.85));
-    targetShip.rotZ = dx * 0.0035; targetShip.rotX = dy * 0.0035;
+    targetShip.x = Math.max(-130, Math.min(130, pjTouchStart.baseShipX + dx * 1.2));
+    targetShip.y = Math.max(-95, Math.min(95, pjTouchStart.baseShipY + dy * 1.2));
+    targetShip.rotZ = dx * 0.005; targetShip.rotX = dy * 0.005;
 }, {passive:true});
 pCanvas.addEventListener("touchend", () => { targetShip.rotZ = 0; targetShip.rotX = 0; pjTouchStart = null; });
 
@@ -455,7 +553,12 @@ function puddleLoop() {
             if(o.z <= 35 && o.z > 0) {
                 let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
                 if(dist < o.r + 15) {
-                    if(o.type === 'stargate') { scorePJ += 1000; energyPJ = Math.min(100, energyPJ + 25); } else { energyPJ -= 30; }
+                    if(o.type === 'stargate') { 
+                        scorePJ += 1000; 
+                        energyPJ = Math.min(100, energyPJ + 25); 
+                    } else { 
+                        energyPJ -= 30; 
+                    }
                     objects3D.splice(i,1);
                 }
             } else if(o.z <= 0) objects3D.splice(i,1);
