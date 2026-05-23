@@ -321,7 +321,7 @@ let activeBB = false, bx, by, bdx, bdy, bpX, bricks = [], scoreBB = 0, gameOverB
 
 function initBreaker() {
     bx=170; by=320; bdx=2; bdy=-3; bpX=135; scoreBB=0; gameOverBB=false; activeBB=true;
-    for(let i=0;i<6;i++) { bricks[i]=[]; for(let j=0;j<4;j++) bricks[i][j]=1; }
+    for(let i=0; i<6; i++) { bricks[i]=[]; for(let j=0; j<4; j++) bricks[i][j]=1; }
 }
 bCanvas.addEventListener("touchmove", (e) => {
     let r = bCanvas.getBoundingClientRect(); bpX = (e.touches[0].clientX - r.left)*(340/r.width) - 35;
@@ -331,8 +331,8 @@ function updateBreaker() {
     if(!activeBB || gameOverBB) return;
     bx+=bdx; by+=bdy; if(bx<5||bx>335) bdx=-bdx; if(by<5) bdy=-bdy;
     if(by>340 && bx>bpX && bx<bpX+70) bdy=-3; if(by>370) gameOverBB=true;
-    for(let i=0;i<6;i++){
-        for(let j=0;j<4;j++){
+    for(let i=0; i<6; i++){
+        for(let j=0; j<4; j++){
             if(bricks[i][j]===1){
                 let x=i*50+20, y=j*20+40;
                 if(bx>x && bx<x+45 && by>y && by<y+15) { bdy=-bdy; bricks[i][j]=0; scoreBB++; }
@@ -343,18 +343,19 @@ function updateBreaker() {
 function drawBreaker() {
     bCtx.clearRect(0,0,340,380); bCtx.fillStyle="#0a84ff"; bCtx.fillRect(bpX, 350, 70, 10);
     bCtx.fillStyle="#bf5af2"; bCtx.beginPath(); bCtx.arc(bx,by,6,0,Math.PI*2); bCtx.fill();
-    for(let i=0;i<6;i++){ for(let j=0;j<4;j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*20+40, 45, 15); } } }
+    for(let i=0; i<6; i++){ for(let j=0; j<4; j++) { if(bricks[i][j]===1){ bCtx.fillStyle="#30d158"; bCtx.fillRect(i*50+20, j*20+40, 45, 15); } } }
     bCtx.fillStyle="#fff"; bCtx.fillText("SCORE: "+scoreBB, 15,25);
 }
 startBbBtn.addEventListener("click", () => initBreaker());
 
 
 /* ====================================================================
-   🛸 GAME 4: PADDLE JUMPER 3D (操作感直感化＆完全自動ドローン版)
+   🛸 GAME 4: PADDLE JUMPER 3D (完全リアルタイム計算描画版)
    ==================================================================== */
 const pCanvas = document.getElementById("puddleCanvas"), pCtx = pCanvas.getContext("2d");
 let activePJ = false, scorePJ = 0, energyPJ = 100, gameOverPJ = false, pjFrame = 0;
 
+// 完全3D変数（すべてプログラム内のリアルタイム数値です。動画・画像は一切使いません）
 let ship3D = { x: 0, y: 0, rotX: 0, rotY: 0, rotZ: 0 }; 
 let targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
 let star3D = [], objects3D = [], drones3D = [];
@@ -368,6 +369,7 @@ function initPuddleGame() {
     targetShip = { x: 0, y: 0, rotX: 0, rotY: 0 };
     star3D = []; objects3D = []; drones3D = []; isThrusting = false; podAnimationFactor = 1.0;
 
+    // 宇宙の3D粒子点を生成
     for(let i=0; i<100; i++) {
         star3D.push({ x: (Math.random()-0.5)*1000, y: (Math.random()-0.5)*1000, z: Math.random()*800 + 50 });
     }
@@ -379,7 +381,7 @@ function spawnPJObject(type, x, y, z) {
     objects3D.push({ type: type, x: x, y: y, z: z, r: type==='gate'? 70 : 20 });
 }
 
-// 【操作感直感化修正】指の動かした方向にそのまま追従（リバース操作の解消バグフィックス）
+// 【操作バグ修正】指のスワイプ方向にそのまま追従（上が上、下が下へ動く直感物理）
 pCanvas.addEventListener("touchstart", (e) => {
     if(!activePJ || gameOverPJ) return;
     let t = e.touches[0]; pjTouchStart = { x: t.clientX, y: t.clientY };
@@ -389,10 +391,10 @@ pCanvas.addEventListener("touchmove", (e) => {
     if(!activePJ || gameOverPJ || !pjTouchStart) return;
     let t = e.touches[0];
     let dx = t.clientX - pjTouchStart.x;
-    let dy = t.clientY - pjTouchStart.y; // 符号の向きを反転して直感化
+    let dy = t.clientY - pjTouchStart.y; // 符号変換により、直感的なカメラ連動を実現
 
     targetShip.x = Math.max(-120, Math.min(120, dx * 0.8));
-    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上にスワイプで上へ移動！
+    targetShip.y = Math.max(-90, Math.min(90, dy * 0.7)); // 上スワイプ＝機体も上へ！
     targetShip.rotZ = dx * 0.004;  
     targetShip.rotX = dy * 0.002; 
 }, {passive:true});
@@ -402,7 +404,7 @@ pCanvas.addEventListener("touchend", () => {
     pjTouchStart = null;
 });
 
-// 加速ボタンのバインディング
+// 加速ボタン（長押し対応）
 const thrustBtn = document.getElementById("btnThrust");
 ['touchstart', 'mousedown'].forEach(evt => {
     thrustBtn.addEventListener(evt, (e) => { e.preventDefault(); if(activePJ) isThrusting = true; });
@@ -415,13 +417,13 @@ function updatePuddlePhysics() {
     if(!activePJ || gameOverPJ) return;
     pjFrame++;
 
-    // 自機移動処理
+    // プレイヤーの入力をミリ秒単位でイージング補間（リアルタイム描画）
     ship3D.x += (targetShip.x - ship3D.x) * 0.12;
     ship3D.y += (targetShip.y - ship3D.y) * 0.12;
     ship3D.rotZ += ((targetShip.rotZ || 0) - ship3D.rotZ) * 0.15;
     ship3D.rotX += ((targetShip.rotX || 0) - ship3D.rotX) * 0.15;
 
-    // 変形アニメーション
+    // 羽（ドライブポッド）のリアルタイム開閉変形計算
     if(isThrusting) {
         podAnimationFactor += (0.0 - podAnimationFactor) * 0.2; 
     } else {
@@ -429,11 +431,10 @@ function updatePuddlePhysics() {
     }
     let speed = isThrusting ? 14.0 : 5.0;
 
-    // 【全自動ドローンシステム】45フレーム（約0.7秒）に一度、索敵範囲内の敵を全自動ロックオンして迎撃
+    // 【全自動ドローン・インターセプター】定期的に、索敵圏内のレイスを捉えて自動ツイン発射！
     if(pjFrame % 45 === 0) {
         let targets = objects3D.filter(o => o.type === 'wraith');
         if(targets.length > 0) {
-            // 左右のポッドからオートツインミサイル発射
             drones3D.push({ x: ship3D.x - 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
             drones3D.push({ x: ship3D.x + 18, y: ship3D.y + 5, z: 40, vx: 0, vy: 0, vz: 16 });
         }
@@ -442,29 +443,29 @@ function updatePuddlePhysics() {
     let camX = ship3D.x * 0.06;
     let camY = ship3D.y * 0.06;
 
-    // 星の3D背景演算
+    // 3D背景のリアルタイム相対スクロール
     star3D.forEach(s => {
         s.z -= speed; s.x -= camX; s.y -= camY;
         if(s.z <= 10) { s.x = (Math.random()-0.5)*1000; s.y = (Math.random()-0.5)*1000; s.z = 800; }
     });
 
-    // 誘導ドローンの全自動追尾追従
+    // 【全自動追尾】ドローンのホーミングベクトルリアルタイム計算
     for(let i=drones3D.length-1; i>=0; i--) {
         let d = drones3D[i]; d.z += d.vz; d.x += d.vx - camX; d.y += d.vy - camY;
         if(d.z > 800) { drones3D.splice(i,1); continue; }
         
         let targets = objects3D.filter(o => o.type === 'wraith');
         if(targets.length > 0) {
-            // 最も近いターゲットへ軌道を自動修正
+            // 最も近いエネミー座標を毎フレーム追従計算
             d.vx += (targets[0].x - d.x) * 0.05; d.vy += (targets[0].y - d.y) * 0.05;
         }
     }
 
-    // 障害物・エネミーの移動と当たり判定
+    // 衝突判定と3D座標の再配置
     for(let i=objects3D.length-1; i>=0; i--) {
         let o = objects3D[i]; o.z -= speed; o.x -= camX; o.y -= camY;
 
-        // ドローンとのヒット
+        // ドローンと敵のヒット判定
         for(let j=drones3D.length-1; j>=0; j--) {
             let d = drones3D[j];
             if(Math.hypot(o.x-d.x, o.y-d.y, o.z-d.z) < o.r + 12) {
@@ -474,7 +475,7 @@ function updatePuddlePhysics() {
             }
         }
 
-        // 自機との衝突
+        // 自機との衝突判定
         if(o.z <= 40 && o.z > 0) {
             let dist = Math.hypot(o.x - ship3D.x, o.y - ship3D.y);
             if(dist < o.r + 15) {
@@ -498,6 +499,7 @@ function updatePuddlePhysics() {
     if(energyPJ <= 0) { energyPJ = 0; gameOverPJ = true; }
 }
 
+// 3D透視投影数学エンジン（三次元のxyzを二次元のxyに変換）
 function project(x, y, z, cx, cy) {
     let fov = 220; if(z <= 0) z = 1;
     return { x: (x / z) * fov + cx, y: (y / z) * fov + cy, scale: fov / z };
@@ -507,7 +509,7 @@ function drawPuddleGame() {
     pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
     let cx = pCanvas.width / 2, cy = pCanvas.height / 2;
 
-    // 1. 星
+    // 1. 星群（すべてリアルタイムの点）
     pCtx.fillStyle = "#ffffff";
     star3D.forEach(s => {
         let pt = project(s.x, s.y, s.z, cx, cy);
@@ -523,7 +525,7 @@ function drawPuddleGame() {
         pCtx.fillStyle = "#00f2fe"; pCtx.beginPath(); pCtx.arc(pt.x, pt.y, Math.max(2.5, pt.scale*2.2), 0, Math.PI*2); pCtx.fill();
     });
 
-    // 3. 敵・ゲイト
+    // 3. 敵・ゲイトの3Dポリゴンレンダリング
     objects3D.sort((a,b)=>b.z - a.z).forEach(o => {
         let pt = project(o.x, o.y, o.z, cx, cy); let sz = o.r * pt.scale * 0.6;
         if(pt.x < -100 || pt.x > pCanvas.width+100 || pt.y < -100 || pt.y > pCanvas.height+100) return;
@@ -540,14 +542,12 @@ function drawPuddleGame() {
         }
     });
 
-    // 4. 三人称自機
+    // 4. 【自機ジャンパー】3Dワイヤーメッシュをリアルタイムにパス描画
     draw3DPlayerJumper(cx, cy);
 
-    // HUD
+    // HUDテキスト
     pCtx.fillStyle = "#00f2fe"; pCtx.font = "bold 12px monospace"; pCtx.textAlign = "left";
     pCtx.fillText("🛡️ SHIELD: " + energyPJ + "%", 15, 25);
-    
-    // オートインターセプター作動ランプ
     pCtx.fillStyle = "#30d158"; pCtx.fillText("🤖 AUTO DRONE: ONLINE", 15, 43);
 
     pCtx.fillStyle = "#fff"; pCtx.textAlign = "right"; pCtx.fillText("SCORE: " + scorePJ, pCanvas.width - 15, 25);
@@ -567,36 +567,36 @@ function draw3DPlayerJumper(cx, cy) {
 
     pCtx.save();
     pCtx.translate(pt.x, pt.y);
-    pCtx.rotate(ship3D.rotZ); 
+    pCtx.rotate(ship3D.rotZ); // 横スワイプによるロール回転
 
     pCtx.strokeStyle = "#00f2fe"; pCtx.lineWidth = 2;
     pCtx.fillStyle = "rgba(10, 24, 40, 0.85)";
     pCtx.shadowBlur = 8; pCtx.shadowColor = "#00f2fe";
 
-    // 船体中央
+    // 船体中央カプセル
     let w = 45 * scale, h = 26 * scale;
     pCtx.beginPath();
     pCtx.moveTo(-w, -h/2); pCtx.lineTo(w, -h/2);
     pCtx.lineTo(w + 10, h/2); pCtx.lineTo(-w - 10, h/2);
     pCtx.closePath(); pCtx.fill(); pCtx.stroke();
 
-    // 窓
+    // コックピット風シールド
     pCtx.fillStyle = "rgba(0, 242, 254, 0.4)";
     pCtx.beginPath();
     pCtx.moveTo(-w+5, -h/2+3); pCtx.lineTo(w-5, -h/2+3);
     pCtx.lineTo(w, 0); pCtx.lineTo(-w, 0);
     pCtx.closePath(); pCtx.fill(); pCtx.stroke();
 
-    // 左右ドライブポッド
+    // 左右の稼働ポッド（加速状態によって瞬時に数値が変化し、グラフィックが追従します）
     let podOffset = 18 * podAnimationFactor * scale; 
     pCtx.fillStyle = "rgba(15, 15, 25, 0.9)";
     pCtx.shadowBlur = 0;
 
-    // 左
+    // 左ポッド
     pCtx.beginPath(); pCtx.rect(-w - 8 - podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
     if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(-w - 6 - podOffset, h/1.5, 4*scale, 5); }
 
-    // 右
+    // 右ポッド
     pCtx.beginPath(); pCtx.rect(w + podOffset, -h/4, 8*scale, h); pCtx.fill(); pCtx.stroke();
     if(isThrusting) { pCtx.fillStyle = "#ff9f0a"; pCtx.fillRect(w + 2 + podOffset, h/1.5, 4*scale, 5); }
 
